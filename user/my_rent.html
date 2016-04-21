@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我的租房</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../js/lc_witch/lc_switch.css" rel="stylesheet">
+		<link href="../css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>我的租房</h4>
+				</div>
+			</div>
+		</header>
+		<section id="house-list" class="house-list" v-cloak>
+			<div class="container" id="page_list">
+				<dl v-for="list in lists">
+					<dt><img v-bind:src="list.logo == '' ? '../images/house_1.jpg' : list.logo" class="img-responsive" /></dt><dd><table>
+						<tr>
+							<td><h4 class="pull-left">{{ list.name }}</h4></td>
+						</tr>
+						<tr>
+							<td><span class="introduce">租期：{{ list.count }} {{ list.type == 2 ? "月" : "天" }}</span><span class="pull-right"><span class="badge bg-color-dark-pink-empty" v-if="list.payStatus == 0">未支付</span></span></td>
+						</tr>
+						<tr>
+							<td><span class="introduce">类型：{{ list.type == 2 ? "长租" : "短租" }}</span></td>
+						</tr>
+						<tr>
+							<td><span class="pull-left price">总金额：{{ list.totalAmount }}</span><a class="button" role="button" v-on:click="showModal(this, $index)" v-if="list.payStatus == 0"><span class="badge btn-round-15 bg-color-orange pull-right">立即支付</span></a><span class="badge bg-color-green pull-right" v-if="list.payStatus == 1">已支付</span></td>
+						</tr>
+					</table></dd>
+				</dl>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+			</div>
+		</section>
+
+		<div id="invest-popup">
+			<div id="myModal" class="modal fade">
+				<div class="popup-fixed-bottom">
+					<div class="modal-dialog">
+						<form class="pay-form" id="pay-form">
+							<ul>
+								<li>
+									<div class="inline left"><img src="../images/pay_icon_1.png" /><span>余额支付</span></div>
+									<div class="inline right"><input type="checkbox" name="selectBalance" value="1" class="lcs_check" checked="checked" /></div>
+								</li>
+								<li>
+									<div class="inline left"><img src="../images/pay_icon_2.png" /><span>支付宝支付</span></div>
+									<div class="inline right">   
+					                    <div class="radio radio-primary">
+					                        <input type="radio" name="payId" id="radio1" value="1">
+					                        <label for="radio1"></label>
+					                    </div>
+                        			</div>
+								</li>
+								<li>
+									<div class="inline left"><img src="../images/pay_icon_3.png" /><span>微信支付</span></div>
+									<div class="inline right">
+					                    <div class="radio radio-primary">
+					                        <input type="radio" name="payId" id="radio2" value="2">
+					                        <label for="radio2"></label>
+					                    </div>
+                        			</div>
+								</li>
+							</ul>
+						    <div class="submit-button bg-color-dark-pink">
+						    	<a href="javascript:void(0)" v-on:click="pay(payInfo.index)">确认支付</a>
+						    </div>
+						    <input type="hidden" name="orderId" value="{{ payInfo.orderId }}">
+						    <input type="hidden" name="source" value="wap">
+						</form>
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="aliPay" style="display:none"></div>
+
+<!--jquery plugin-->
+<script type="text/javascript" src="../js/lc_witch/lc_switch.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(e){
+	$("#messageModal").on("hidden.bs.modal", function() {
+		$(this).removeData("bs.modal");
+	});
+	$('input.lcs_check').lc_switch();
+	var flag = true;
+	$("input[type=radio]").click(function(){
+		flag = this.checked = flag;
+		flag = !flag;
+	})
+});
+
+var vm = new Vue({
+	el: "#app",
+	data: {
+		page: 0,
+		limit: 0,
+		lists: [],
+		payInfo: [],
+		user: [],
+		next_page: 0,
+		user: []
+	},
+	created: function () {
+		this.page = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+		this.getList();
+		this.user = JSON.parse(getGlobalVal('user_info'));
+	},
+  	methods: {
+  		getList: function (page) {
+ 	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	} 			
+			var postData = {
+				'page': page,
+				'limit': this.limit
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'GET',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'member/getOrderList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.lists.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.lists.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;
+								}else{
+									_this.next_page = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+		next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    },
+	    pay: function(index){
+	    	var postData = $("#pay-form").serializeObject();
+			var payId = false;
+	    	$.each(postData, function(k, v){
+	    		if(postData.payId == undefined){
+	    			if(postData.selectBalance == 1){
+	    				postData.payId = 0;
+	    				payId = 0;
+	    			}else{
+	    				errorMessageText("请选择支付方式")
+	    			}
+	    		}else{
+					if(postData.selectBalance != 1){
+						postData.selectBalance = 0;
+	    			}
+	    			payId = postData.payId;
+	    		}
+	    	});
+	    	if(payId === false){
+	    		return false;
+	    	}else if(payId == 0 && postData.selectBalance == 1){
+	    		if(parseInt(this.payInfo.totalAmount) > parseInt(this.user.balance)){
+	    			errorMessageText("余额不足！");
+	    			return false;	
+	    		}
+	    	}else if(payId == 2){
+	    		postData.tradeType = "JSAPI";
+	    	}
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'pay/payChange',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(payId == 1){
+							$("#aliPay").html(data.body);
+						}else if(payId == 2){
+							redirectToUrl(data.body.url);
+						}else{
+							alert(data.message);
+							_this.lists[index].payStatus = 1;
+							$("#myModal").modal("hide");
+						}
+					}
+				}
+			});
+	    },
+
+		showModal: function(handle, index){
+			this.payInfo = this.lists[index];
+			this.payInfo.index = index;
+			$("#myModal").modal();
+		}
+  	}
+})
+</script>
+	</body>
+</html>

@@ -1,0 +1,10 @@
+<form id="message_form" onsubmit="return false;">
+<div class="form-group">
+<label for="departure_reason"><h4>退房原因</h4></label>
+<textarea class="form-control" name="reason"></textarea>
+</div>
+<div>
+<button class="btn btn-link" data-dismiss="modal">取消</button><button class="btn btn-link" type="button" onclick="vm.departure()">确认</button>
+<input type="hidden" name="id">
+</div>
+</form>

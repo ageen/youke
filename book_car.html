@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>用车</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>用车</h4>
+					<div class="header-bar-left"><a v-bind:href="links.esc" target="_blank">二手车</a></div>
+				</div>
+			</div>
+		</header>
+		<section class="book-list">
+			<div class="container" id="page_list">
+				<dl v-for="car in cars">
+					<dt style="background-image:url({{ car.images == '' ? './images/nopic.jpg' : car.images }})"></dt><dd class="information">
+					<h4>{{ car.name.substring(0,8) }}</h4>
+					<div class="introduce">{{ car.content.substring(0,18) }}</div>
+					<div class="price"><strong>{{ car.price }}</strong>元/天</div>
+					</dd><dd class="book-button">
+					<a href="tel:{{ car.tel }}"><img src="./images/phone_icon.png" class="img-responsive" ></a>
+					</dd>
+				</dl>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+			</div>
+		</section>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		cars: [],
+		links: [],
+		limit: 0,
+		page: 0,
+		cityId: 0,
+		next_page: 0
+	},
+	created: function () {
+		this.limit = limit;
+		this.page = getGlobalVal('page');
+		this.cityId = getGlobalVal("cityId");
+		this.getList();
+		this.getLinks();
+	},
+  	methods: {
+	    getList: function (page) {
+	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	}
+			var postData = {
+				'page':page,
+				'limit':this.limit,
+				'cityId':this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'life/getCar',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.cars.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.cars.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;
+								}else{
+									_this.next_page = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+	    next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    },
+	    getLinks: function(){
+			var postData = {
+				'cityId':this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'global/getLinks',
+				'success': function(data) {
+					_this.links = data.body;
+				}
+			});	    	
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

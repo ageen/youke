@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>优租之家</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./js/lc_witch/lc_switch.css" rel="stylesheet">
+		<link href="./js/mtime/mtime.css" rel="stylesheet">
+		<link href="./css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/carousel-swipe.js"></script>
+		<script src="./js/vue.js"></script>
+		<script type="text/javascript" src="./js/jquery.validate.js"></script>
+		<script type="text/javascript" src="./js/lc_witch/lc_switch.min.js"></script>
+		<script type="text/javascript" src="./js/mtime/date.js" ></script>
+		<script type="text/javascript" src="./js/mtime/iscroll.js" ></script>
+		<script type="text/javascript" src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>优租之家</h4>
+				</div>
+			</div>
+		</header>
+		
+		<section class="fund-raise-detail">
+			<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+				<!-- Carousel indicators -->
+				<ol class="carousel-indicators" id="banner-generic">
+					<template  v-if="sliders.length > 1">
+					<li data-target="#carousel-example-generic"  data-slide-to="{{ $index }}" v-for="slider in sliders" class="{{ $index==0?'active':'' }}"></li>
+					</template>
+				</ol>
+
+				<div class="carousel-inner" role="listbox" id="banner">
+					<div v-for="slider in sliders" class="item {{ $index==0?'active':'' }}">
+						<img v-bind:src="slider" >
+					</div>
+				</div>
+
+				<!-- Controls -->
+				<a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev"></a>
+				<a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next"></a>
+			</div>
+			<div class="container bj-white" id="hx-detail">
+				<dl>
+					<dt>
+					<div class="title color-02">{{ info.name }}</div>
+					</dt>
+					<dd class="introduce clearfix">
+					<p class="color-01">{{ info.intro }}</p>
+					</dd>
+					<dd>
+					<div>
+						<span class="badge btn-round-15 long-rent pull-left">长租</span>
+						<span class="price pull-right color-04"><span class="bigger color-04">{{ info.minPrice }} - {{ info.maxPrice }}</span>{{ info.unit }}</span>
+					</div>
+					</dd>
+				</dl>
+			</div>
+			<div class="supporter">
+				<div class="container bj-white">
+					<div class="title">楼层</div>
+					<ul id="floor">
+							<li v-for="item in items" class="{{ $index==0?'active':'' }}"><a href="javascript:void(0)" onclick="vm.item_price(this, {{ $index }})">{{ item.room }}室</a></li>
+					</ul>
+					<div class="clearfix"></div>
+					<div class="price text-right color-08"><span class="bigger" id="f-price">{{ items[0].price }}</span>元/月</div>
+				</div>
+			</div>
+			<div class="clearfix"></div>
+			<div class="container bj-white">
+				<form class="rent_form" id="rent_form">
+					<table>
+						<tr>
+							<td class="color-07">起租时间:</td>
+							<td><div class="form-group">
+								<input type="text" class="pull-left control-form" placeholder="选择租房日期" name="startDate" id="rentTime" readonly="readonly">
+							</div></td>
+						</tr>
+						<tr>
+							<td class="color-07">租期:</td>
+							<td>
+								<div class="input-group">
+					                <span class="input-group-addon"><a href="javascript:void(0)" onClick="javascript:if(document.getElementById('rent_form').count.value>1){document.getElementById('rent_form').count.value--};vm.total_price()">-</a></span>
+					                <input type="number" name="count" class="form-control" style="width:50px;" onchange="vm.total_price()" value="1">
+					                <span class="input-group-addon"><a href="javascript:void(0)" onClick="javascript:document.getElementById('rent_form').count.value++;vm.total_price()">+</a></span>
+					            </div>
+							</td>
+						</tr>
+						<tr>
+							<td class="color-07">押金费:</td>
+							<td><span class="pull-left color-07">1个月租金</span> <span class="pull-right color-07">共计: <span class=" color-08" id="confirm_price">0</span>元</span></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><span class="color-06"><span class="glyphicon glyphicon-info-sign"></span>每月将有水电气费的结算</span><br>
+							<span class="color-06">年付95折，半年付98折</span></td>
+						</tr>
+					</table>
+				</form>
+			</div>
+			<div class="order-button">
+				<div class="container">
+					<ul>
+						<a href="tel:{{info.telephone}}">
+						<li class="telephone">
+							<div><span class="glyphicon glyphicon-earphone"></span> 咨询电话</div>
+							<p>{{ info.telephone }}</p>
+						</li>
+						</a>
+						<li class="bg-color-orange"><a href="javascript:void(0);" id="order-button">预约看房</a></li>
+						<li class="bg-color-magenta"><a href="javascript:void(0);" id="confirm-button">立即下单</a></li>
+					</ul>
+				</div>
+			</div>
+		</section>
+		<div id="invest-popup">
+			<div id="myModal" class="modal fade">
+				<div class="popup-fixed-bottom">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<!-- Content will be loaded here from "remote.php" file -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="datePlugin"></div>
+		<div id="aliPay" style="display:none"></div>
+
+<!--jquery plugin-->
+
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#carousel-example-generic").carousel()
+	$('input.lcs_check').lc_switch();
+	$('#rentTime').date(false, checkdate);
+	$('#order-time').date();
+	$("#order-button").click(function(){
+		if(!getGlobalVal("user_info")){
+			//前一个url
+			setSessionStorage("prev_url", window.location.href);
+    		redirectToUrl("login.html");
+    		return false;
+    	}
+		$("#myModal").modal({
+			remote: './list/long_rent_order_form.html'
+		});
+	});
+	$("#confirm-button").click(function(){
+		if(!getGlobalVal("user_info")){
+			//前一个url
+			setSessionStorage("prev_url", window.location.href);
+    		redirectToUrl("login.html");
+    		return false;
+    	}
+    	if($("#rentTime").val() == ''){
+    		$("#rentTime").focus();
+    		errorMessageText("选择租房日期")
+    		return false;
+    	}
+		$("#myModal").modal({
+			remote: './list/long_rent_confirm_form.html'
+		});
+	});
+	$("#myModal").on("hidden.bs.modal", function() {
+		$(this).removeData("bs.modal");
+	});
+})
+var vm = new Vue({
+	el: "#app",
+	data: {
+		hId: 0,
+		info: {},
+		sliders: {},
+		items: {},
+		roomId: 0
+	},
+	created: function () {
+		setSessionStorage("prev_url", false);
+		this.hId = getUrlParam('hId');
+		this.getHouseholdInfo(this.hId);
+	},
+  	methods: {
+  		getVerify: function(){
+  			return false;
+  		},
+	    getHouseholdInfo: function (hId) {
+			var postData = {
+				'hId': hId,
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'house/getHouseholdInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.info = data.body.info;
+						_this.sliders = data.body.info.images;
+						_this.items = data.body.list;
+						_this.roomId = _this.items[0].roomId;
+						_this.total_price(_this.items[0].price);
+					}
+				}
+			});
+	    },
+	    item_price: function(handle, order){
+	    	$("#floor li").each(function(){
+	    		$(this).removeClass("active");
+	    	});
+	    	$(handle).parent().addClass("active")
+	    	$("#f-price").html(this.items[order].price);
+	    	this.roomId = this.items[order].roomId;
+	    },
+	    booking: function(){
+	    	if($("#book-form").valid() == false){
+	    		return false;
+	    	}
+	    	var postData = $("#book-form").serializeObject();
+	    	postData.bookingTime = datastrToTimestamp(postData.bookingTime);
+	    	postData.roomId = this.roomId;
+	    	postData.hId = this.hId;
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'house/booking',
+				'success': function(data) {
+					if(errorMessage(data)){
+						alert("预约成功!");
+						redirectToUrl("user/my_record.html");
+					}
+				}
+			});
+	    },
+	    total_price: function(init_price){
+	    	var amount = parseInt($("input[name=count]").val());
+	    	if(amount <= 0){
+	    		$("input[name=count]").val(1)
+	    		$("input[name=count]").focus();
+	    		return false;
+	    	}
+	    	if(init_price){
+	    		var price = parseInt(init_price);
+	    	}else{
+	    		var price = parseInt($("#f-price").text());	
+	    	}
+	    	
+	    	if(amount>=6&&amount<12){
+	    		var total = Math.round(price * amount * 0.98);	
+	    	}else if(amount>12){
+	    		var total = Math.round(price * amount * 0.95);	
+	    	}else{
+	    		var total = price * amount;	
+	    	}
+	    	$("#confirm_price").text(total);
+	    },
+	    pay: function(){
+	    	if($("#book-form-2").valid() == false){
+	    		return false;
+	    	}
+	    	var postData = $("#book-form-2").serializeObject();
+			var payId = false;
+	    	$.each(postData, function(k, v){
+	    		if(postData.payId == undefined){
+	    			if(postData.selectBalance == 1){
+	    				postData.payId = 0;
+	    				payId = 0;
+	    			}else{
+	    				errorMessageText("请选择支付方式")
+	    			}
+	    		}else{
+					if(postData.selectBalance != 1){
+						postData.selectBalance = 0;
+	    			}
+	    			payId = postData.payId;
+	    		}
+	    	});
+	    	if(payId === false){
+	    		return false;
+	    	}
+	    	if(payId == 2){
+	    		postData.tradeType = "JSAPI";
+	    	}
+	    	var startDate = $("input[name=startDate]").val();
+	    	startDate = startDate.split('-').join('');
+	    	postData.roomId = this.roomId;
+	    	postData.startDate = startDate;
+	    	postData.count = parseInt($("input[name=count]").val());
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'house/create',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(payId == 1){
+							$("#aliPay").html(data.body);
+						}else if(payId == 2){
+							redirectToUrl(data.body.url);
+						}else{
+							alert("订单号为："+data.body.orderSn);
+							redirectToUrl("user/my_rent.html");
+						}
+					}
+				}
+			});
+	    }
+  	}
+});
+function checkdate(datestr){
+	var now = new Date().format("yyyy-MM-dd");
+	if(dateDiff(datestr,now) == false){
+		$("#rentTime").val('')
+		errorMessageText("时间选择错误！");
+	}else{
+		$("#response-message").fadeOut();
+		$("#rentTime").val(datestr)
+	}
+}
+
+//计算天数差的函数，通用  
+function  dateDiff(sDate1, sDate2){    //sDate1和sDate2是2006-12-18格式  
+   var d1 = Date.parse(new Date(sDate1));
+   var d2 = Date.parse(new Date(sDate2));
+   if(parseInt(d1-d2)<=0){
+   		return false;
+   }else{
+   		return parseInt(d1-d2)/1000/3600/24;
+   }
+} 
+</script>
+	</body>
+</html>

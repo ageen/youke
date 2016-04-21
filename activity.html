@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>活动</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content"><h4>活动</h4>
+				<div class="header-bar-left"><a href="user/my_pub_activity.html">发起活动</a></div></div>
+			</div>
+		</header>
+		<section class="activity-list">
+			<div class="container">
+				<div class="row" id="page_list">
+				<list :data="activities"></list>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+				</div>
+			</div>
+		</section>
+
+<!-- component template -->
+<script type="text/x-template" id="list-template">
+	<div class="col-xs-12" v-for="activity in data">
+		<dl>
+			<dt>
+			<a href="activity_detail.html?actId={{ activity.actId }}">
+				<img v-bind:src="activity.image == '' ? './images/exampel4.jpg' : activity.image" class="img-responsive" />
+			</a>
+			</dt><dd><ul class="vertical-center">
+				<li><a href="activity_detail.html?actId={{ activity.actId }}"><h4 style="color:#000;font-size:14px;font-weight:bold;">{{ activity.name }}</h4></a></li>
+				<li><span class="info-title">发起人:</span> {{ activity.username == '' ? '匿名' : activity.username }} 
+				<span class="label label-success" v-if="activity.costType == 1">免费</span><span class="label label-primary" v-if="activity.costType == 2">收费</span></li>
+				<li><span class="info-title">活动时间:</span> {{ activity.startTime }}</li>
+				<li>
+					<span class="info-title">活动类型:</span> 
+					<span v-if="activity.type == 1">运动</span> 
+					<span v-if="activity.type == 2">聚餐</span> 
+					<span v-if="activity.type == 3">KTV</span> 
+					<span v-if="activity.type == 4">周边旅游</span> 
+					<span v-if="activity.peopleType == 1 ">限女性</span>
+					<span v-if="activity.peopleType == 2 ">限男性</span>
+				</li>
+				<li>
+					<span class="info-title">已报名:</span>
+					<span style="color:red;font-size:20px;">{{ activity.joined }}</span>人,
+					<span v-if="activity.peopleLimit != 0">限{{ activity.peopleLimit }}人参加</span>
+					<span v-if="activity.peopleLimit == 0">无限制</span>
+				</li>
+			</ul></dd>
+		</dl>
+		<div class="content">
+			<span>活动介绍</span>
+			<p>
+				{{ activity.content }}
+			</p>
+		</div>
+	</div>
+</script>
+<script type="text/javascript">
+// register the grid component
+Vue.component('list', {
+  template: '#list-template',
+  props: {
+    data: []
+  }
+})
+
+var vm = new Vue({
+	el: "#app",
+	data: {
+		activities: [],
+		limit: 0,
+		page: 0,
+		cityId: 0,
+		is_login: false,
+		next_page: 0
+	},
+	created: function () {
+		this.limit = getGlobalVal('limit');
+		this.page = getGlobalVal('page');
+		this.cityId = getGlobalVal("cityId");
+		this.getList();
+		if(getGlobalVal("user_info")){
+			this.is_login = true;
+		}
+	},
+  	methods: {
+	    getList: function (page) {
+	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	}
+			var postData = {
+				'page':page,
+				'limit':this.limit,
+				'cityId':this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.activities.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								$.each(data.body, function(k, v){
+									data.body[k].startTime = timestampToDate(data.body[k].startTime, "-", "datetime")
+								});
+								for(var i=0; i<data.body.length; i++){
+									_this.activities.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;	
+								}else{
+									_this.next_page = 1;
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+
+	    next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    }
+  	}
+});
+</script>
+	</body>
+</html>

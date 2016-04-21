@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>家政物业</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4 v-cloak>{{ detail.name }}</h4>
+				</div>
+			</div>
+		</header>
+		
+		<section class="book-list-2" v-cloak>
+			<div class="container">
+				<div>
+					<h4>{{ detail.name }}</h4>
+					<div><img v-bind:src="detail.logo == '' ? './images/example2.png' : detail.logo" class="img-responsive" /></div>
+				</div>
+				<div class="row">
+					<div class="col-xs-12" v-for="list in lists">
+						<dl>
+							<dt>
+							<div><h4>{{ list.content.substring(0, 13) }}</h4></div>
+							<div class="introduce"><img src="./images/icon_company_name.png" style="height:20px;"> {{ list.name.substring(0, 13) }}</div>
+							<div class="introduce"><img src="./images/icon_link.png" style="height:20px;"> <a href="{{ list.url }}"> {{ list.url }}</a></div>
+							</dt>
+							<dd class="book-button">
+							<a href="tel:{{ list.tel }}"><img src="./images/phone_icon.png" class="img-responsive" ></a>
+							</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</section>
+ 
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		detail: [],
+		lists: [],
+		id: 0
+	},
+	created: function () {
+		this.cityId = getGlobalVal("cityId");
+		this.id = getUrlParam("id");
+		this.getService();
+	},
+  	methods: {
+	    getService: function () {
+			var postData = {
+				'id': this.id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'life/getService',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.detail = data.body.build;
+						_this.lists = data.body.list;
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

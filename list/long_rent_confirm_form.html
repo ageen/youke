@@ -1,0 +1,78 @@
+<form class="form-horizontal" id="book-form-2">
+	<div class="form-group">
+		<div class="col-xs-12">
+			<div class="input-group">
+                <span class="input-group-addon"><label for="idCard" >身份证号</label></span>
+                <input type="text" class="form-control" name="idCard" id="idCard" placeholder="输入身份证" data-rule-required="true">
+            </div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-xs-12">
+			<div class="input-group">
+                <span class="input-group-addon"><label for="consignee">&nbsp;&nbsp;&nbsp;联系人</label></span>
+                <input type="text" class="form-control" name="consignee" placeholder="输入联系人" size="20" data-rule-required="true">
+            </div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-xs-12">
+			<div class="input-group">
+                <span class="input-group-addon"><label for="tel">联系电话</label></span>
+                <input type="tel" class="form-control" name="tel" placeholder="输入手机号" data-rule-required="true">
+            </div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="tel" class="control-label col-xs-3"></label>
+		<div class="col-xs-8" style="text-align:right">确认金额：<span class="price bigger" id="confirm_price_2">0</span>元</div>
+	</div>
+	<div class="pay-form">
+	<ul>
+		<li>
+			<div class="inline left"><img src="../images/pay_icon_1.png" /><span>余额支付</span></div>
+			<div class="inline right"><input type="checkbox" name="selectBalance" value="1" class="lcs_check" checked="checked" /></div>
+		</li>
+		<li>
+			<div class="inline left"><img src="../images/pay_icon_2.png" /><span>支付宝支付</span></div>
+			<div class="inline right">                           
+                <div class="radio radio-primary">
+                    <input type="radio" name="payId" id="radio1" value="1">
+                    <label for="radio1"></label>
+                </div>
+			</div>
+		</li>
+		<li>
+			<div class="inline left"><img src="../images/pay_icon_3.png" /><span>微信支付</span></div>
+			<div class="inline right">                           
+                <div class="radio radio-primary">
+                    <input type="radio" name="payId" id="radio2" value="2">
+                    <label for="radio2"></label>
+                </div>
+			</div>
+		</li>
+	</ul>
+	</div>
+	<div class="submit-button bg-color-dark-pink">
+	<a href="javascript:void(0)" onclick="vm.pay()">确认支付</a>
+	</div>
+	<input type="hidden" name="source" value="wap">
+</form>
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+	$(document).ready(function(e) {
+		$('input.lcs_check').lc_switch();
+		$("#confirm_price_2").text($("#confirm_price").text())
+		var user = JSON.parse(getGlobalVal('user_info'))
+		$("input[name=tel]").val(user.mobile);
+		$("#book-form-2").validate({
+			errorPlacement: function(error, element) {}
+		});
+		var flag = true;
+		$("input[type=radio]").click(function(){
+			flag = this.checked = flag;
+			flag = !flag;
+		})
+	});
+</script>

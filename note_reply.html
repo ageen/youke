@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>帖子回复</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+		<script src="./js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back()" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>{{ detail.subject.substring(0, 8) }}</h4>
+				</div>
+			</div>
+		</header>
+		<section class="note-detail">
+			<div class="container">
+				<div class="row">
+					<div class="col-xs-12">
+						<dl>
+							<dd class="content">
+							<h4>回复帖子【{{ detail.subject }}】</h4>
+							</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section class="comment-list" v-cloak>
+			<div class="container">
+				<h4>内容</h4>
+				<form id="handle_form">
+					<div class="form-group">
+						<div class="col-xs-12">
+							<textarea name="message" class="form-control"></textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-xs-12">
+						&nbsp;
+						<button type="button" class="btn btn-orange btn-lg btn-block" onclick="vm.reply({{ detail.tid }})">回 复</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		detail: [],
+		tid: '',
+		fid: '',
+		limit: 0,
+		page: 0,
+		replies: []
+	},
+	created: function () {
+		this.tid = getUrlParam('tid');
+		this.fid = getUrlParam('fid');
+		if(this.tid == ''){
+			return false;
+		}
+		this.limit = getGlobalVal('limit');
+		this.page = getGlobalVal('page');
+		this.getDetail();
+	},
+  	methods: {
+	    getDetail: function () {
+	    	var postData = {
+	    		"tid": this.tid
+	    	};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.detail = data.body;
+					}
+				}
+			});
+	    },
+
+	    reply: function(tid) {
+	    	var postData = $("#handle_form").serializeObject();
+			postData.tid = this.tid;
+			var _this = this;
+			$.ajax({
+				'type': 'post',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/reply',
+				'success': function(data) {
+					if(errorMessage(data)){
+						redirectToUrl("note_detail.html?fid="+_this.fid+"&tid="+tid);
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

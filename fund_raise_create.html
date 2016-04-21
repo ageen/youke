@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>创客空间</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./js/lc_witch/lc_switch.css" rel="stylesheet">
+		<link href="./js/mtime/mtime.css" rel="stylesheet">
+		<link href="./css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<link rel="stylesheet" href="js/diyUpload/css/webuploader.css">
+		<link rel="stylesheet" href="js/diyUpload/css/diyUpload.css">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+		<script src="./js/jquery.validate.js"></script>
+		<script type="text/javascript" src="./js/diyUpload/js/webuploader.html5only.min.js"></script>
+		<script type="text/javascript" src="./js/diyUpload/js/diyUpload.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>创客空间</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix">&nbsp;</div>
+		<section>
+		<form class="form-horizontal" id="handle_form" name="handle_form" style="width:95%;margin:0 auto;padding:10px;overflow:hidden;">
+			<div class="form-group">
+				<label for="name" class="control-label col-xs-3"><span class="font-color-red">*</span>项目名称</label>
+				<div class="col-xs-9">
+					<input type="text" class="form-control" name="name" data-rule-required="true">
+					<div class="tip"><span class="glyphicon glyphicon-info-sign"></span>字数不超过15个字</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="name" class="control-label col-xs-3">所属行业</label>
+				<div class="col-xs-9">
+					<input type="text" class="form-control" name="industry">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="content" class="control-label col-xs-3"><span class="font-color-red">*</span>项目内容</label>
+				<div class="col-xs-9">
+					<textarea name="content" class="form-control" data-rule-required="true"></textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label col-xs-3">图片</label>
+				<div class="col-xs-9" id="box">
+					<div id="preview"></div>
+					<div class="tip"><span class="glyphicon glyphicon-info-sign"></span>最多可上传5张图片</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="inputEmail" class="control-label col-xs-3"><span class="font-color-red">*</span>联系人</label>
+				<div class="col-xs-9">
+					<input type="tel" class="form-control" name="contact" data-rule-required="true">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label col-xs-3"><span class="font-color-red">*</span>所处阶段</label>
+				<div class="col-xs-9 gender">
+					<div class="radio radio-primary pull-left">
+						<input type="radio" name="type" id="radio1" value="1" checked="checked">
+						<label for="radio1">概念阶段</label>
+					</div>
+					<div class="radio radio-primary pull-right">
+						<input type="radio" name="type" id="radio2" value="2">
+						<label for="radio2">产品研发中</label>
+					</div>
+					<div class="clearfix"></div>
+					<div class="radio radio-primary pull-left">
+						<input type="radio" name="type" id="radio3" value="3">
+						<label for="radio3">已正式发布</label>
+					</div>
+					<div class="radio radio-primary pull-right">
+						<input type="radio" name="type" id="radio4" value="4">
+						<label for="radio4">已开始盈利</label>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="inputEmail" class="control-label col-xs-3"><span class="font-color-red">*</span>目标资金</label>
+				<div class="col-xs-5">
+					<input type="number" pattern="[0-9]*" class="form-control" name="targetMoney" data-rule-required="true">
+				</div>
+				<div class="col-xs-3"><div style="line-height:30px;">元</div></div>
+			</div>
+			<div class="form-group">
+				<label for="inputEmail" class="control-label col-xs-3"><span class="font-color-red">*</span>筹资天数</label>
+				<div class="col-xs-5">
+					<input type="number" pattern="[0-9]*" class="form-control" name="days" data-rule-required="true">
+				</div>
+				<div class="col-xs-3"><div style="line-height:30px;">天</div></div>
+			</div>
+			<input type="hidden" name="cityId">
+			<button type="button" class="btn btn-orange btn-lg btn-block" onclick="vm.saveActivity()">提交</button>
+		</form>
+		<div class="clearfix"></div>
+		</section>
+		<div id="datePlugin"></div>
+
+<!--plugin-->
+<script type="text/javascript">
+$(document).ready(function(){
+	if(!getGlobalVal("user_info")){
+		//前一个url
+		setSessionStorage("prev_url", window.location.href);
+		redirectToUrl("login.html");
+		return false;
+	}
+})
+var images = new Array();
+var vm = new Vue({
+	el: "#app",
+	data: {},
+	created: function () {
+		$("input[name=cityId]").val(getGlobalVal("cityId"));
+		$("#handle_form").validate({
+			errorPlacement: function(error, element) {}
+		});
+	},
+  	methods: {
+  		saveActivity: function () {
+  			if($("#handle_form").valid() === false){
+	    		return false;
+	    	}
+			var postData = $("#handle_form").serializeObject();
+			postData.images = images.join('|');
+			postData.cityId = getGlobalVal('cityId');
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'project/save',
+				'success': function(data) {
+					if(errorMessage(data)){
+						alert(data.message + "请等待审核");
+						window.location.href = "index.html";
+					}
+				}
+			});
+	    }
+  	}
+})
+//TODO 图片上传
+$('#preview').diyUpload({
+	url:appurl + 'global/upload',
+	success:function( data ) {
+		images.push(data.body[0].image);
+	},
+	error:function( err ) {
+		console.info( err );
+	}
+});
+</script>
+	</body>
+</html>

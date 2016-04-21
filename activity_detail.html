@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>活动详情</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>活动详情</h4>
+				</div>
+			</div>
+		</header>
+
+		<section class="activity-list">
+			<div class="container">
+				<div class="row">
+					<div class="col-xs-12">
+						<dl>
+							<dt>
+								<img v-bind:src="activity.titleImg" class="img-responsive" />
+							</dt><dd>
+								<ul>
+									<li><h4>{{ activity.name }}</h4></li>
+									<li><span class="info-title">发起人:</span> {{ activity.username==""?"匿名":activity.username }} <span class="label label-success" v-if="activity.costType == 1">免费</span><span class="label label-primary" v-if="activity.costType == 2">收费</span></li>
+									<li><span class="info-title">活动时间:</span> {{ activity.startTime }}</li>
+									<li>
+										<span class="info-title">活动类型:</span> 
+										<span v-if="activity.type == 1">运动</span> 
+										<span v-if="activity.type == 2">聚餐</span>
+										<span v-if="activity.type == 3">KTV</span> 
+										<span v-if="activity.type == 4">周边旅游</span>  
+										<span v-if="activity.peopleType == 1 ">限女性</span>
+										<span v-if="activity.peopleType == 2 ">限男性</span>
+									</li>
+									<li>
+										<span class="info-title">已报名:</span> 
+										<span style="color:red;font-size:20px;">{{ activity.joined }}</span>人,<span v-if="activity.peopleLimit > 0">限{{ activity.peopleLimit }}人参加</span><span v-if="activity.peopleLimit == 0">无限制</span>
+									</li>
+								</ul>
+							</dd>
+						</dl>
+						<div class="content_style_2">
+							<h4>活动详情介绍</h4>
+							<p>{{ activity.content }}</p>
+							<div v-for="image in activity.images">
+							<img v-bind:src="image" class="img-responsive" />
+							</div>
+						</div>
+					</div>
+				</div>
+				<template v-if="activity.checkStatus == 2">
+				<div id="handle_button" v-if="activity.isJoined==0"><a class="btn btn-orange btn-lg btn-block" href="javascript:void(0)" onclick="vm.joinActivity({{ activity.actId }})">报名参加</a></div>
+				<div id="handle_button" v-if="activity.isJoined==1"><a class="btn btn-danger btn-lg btn-block" href="javascript:void(0)" onclick="vm.cancelActivity({{ activity.actId }})">取消报名</a></div>
+				</template>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		activity: []
+	},
+	created: function () {
+		var actId = getUrlParam("actId");
+		if(actId != ''){
+			this.getDetail(actId);
+		}
+	},
+  	methods: {
+	    getDetail: function (actId) {
+			var postData = {'actId':actId};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						data.body.startTime = timestampToDate(data.body.startTime, "-", "datetime");
+						_this.activity = data.body;
+					}
+				}
+			});
+	    },
+
+	    joinActivity: function(id){
+			if(!getGlobalVal("user_info")){
+				//前一个url
+				setSessionStorage("prev_url", window.location.href);
+	    		redirectToUrl("login.html");
+	    		return false;
+	    	}
+			var postData = {
+				"actId" : id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/join',
+				'success': function(data) {
+					if(errorMessage(data)){
+						$("#handle_button").html('<a class="btn btn-danger btn-lg btn-block" href="javascript:void(0)" onclick="vm.cancelActivity('+id+')">取消报名</a>');
+						_this.activity.joined = parseInt(_this.activity.joined) + 1;
+					}
+				}
+			});
+	    },
+
+	    cancelActivity: function(id) {
+			var postData = {
+				"actId" : id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/cancel',
+				'success': function(data) {
+					if(errorMessage(data)){
+						$("#handle_button").html('<a class="btn btn-orange btn-lg btn-block" href="javascript:void(0)" onclick="vm.joinActivity('+id+')">报名参加</a>');
+						_this.activity.joined = parseInt(_this.activity.joined) - 1;
+					}
+				}
+			});
+	    } 
+  	}
+})
+</script>
+	</body>
+</html>

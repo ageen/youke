@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="format-detection"content="telephone=no" />
+<title>我的消息</title>
+<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+<link href="../css/global.css" rel="stylesheet">
+<link href="../css/reset.css" rel="stylesheet">
+<link href="../css/main.css" rel="stylesheet">
+<script src="../js/jquery.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script src="../js/vue.js"></script>
+<script src="../js/jquery.touchSwipe.min.js"></script>
+<script src="../js/globel.js"></script>
+<script src="../js/check_login.js"></script>
+</head>
+<body id="app" v-cloak>
+<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+<header>
+	<div class="header-bar">
+		<div class="text-center">
+			<h4>我的消息</h4>
+		</div>
+	</div>
+</header>
+<div class="clearfix" style="height:15px;"></div>
+<section class="message-list" id="page_list">
+	<ul class="line">
+		<li v-for="list in lists">
+			<div class="swipe-lr">
+				<div class="left"><img v-bind:src="'./images/message_icon_'+list.msgType+'.jpg'"  width="50"></div><div class="right">
+				<div class="clearfix"><span class="pull-left title">{{ list.msgType == 1 ? "缴费提示" : (list.msgType == 2 ? "到期提示" : "通知") }}</span><span v-if="list.isRead == 0" class="label label-danger pull-left">未读</span><span class="pull-right date">{{ list.timeStr }}</span></div><a href="javascript:void(0)" v-on:click="read(list.isRead, list.msgId, list.msgType, $index)"><p>{{ list.content }}</p></a></div><div class="delete"><a href="javascript:void(0)" v-on:click="del(list.msgId, $index)"><img src="./images/delete_icon.jpg"  class="img-responsive" width="60" /></a></div>
+			</div>
+		</li>
+	</ul>
+	<div style="clear:both"></div>
+	<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+</section>
+<div class="clearfix" style="height:100px;"></div>
+		<footer id="footer">
+			<div class="footer-fixed-bottom">
+				<div class="row">
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="../index.html"><img src="../images/footbar_icon_home.png" class="img-responsive" /></a></dt>
+							<dd><a href="../index.html">首页</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="../house_list.html"><img src="../images/footbar_icon_rent.png" class="img-responsive" /></a></dt>
+							<dd><a href="../house_list.html">我要租房</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt>
+							<a><img src="../images/footbar_icon_message_a.png" class="img-responsive" /></a>
+							<span v-if="count.msgCount > 0" class="badge footer-fixed-bottom-notify">{{ count.msgCount }}</span>
+							</dt>
+							<dd><a href="message.html" class="active">消息</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="main.html"><img src="../images/footbar_icon_user.png" class="img-responsive" /></a></dt>
+							<dd><a href="main.html">个人中心</a></dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</footer>
+
+<!--jquery plugin-->
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		page: 0,
+		limit: 0,
+		lists: [],
+		user: [],
+		count: [],
+		next_page: 0
+	},
+	created: function () {
+		this.page = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+		this.user = JSON.parse(getGlobalVal('user_info'))
+		this.getList();
+		this.getCount();
+	},
+  	methods: {
+  		getList: function (page) {
+   	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	} 			
+			var postData = {
+				'page': this.page,
+				'limit': this.limit
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'GET',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'message/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.lists.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.lists.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;
+								}else{
+									_this.next_page = 1;	
+								}
+								_this.$nextTick(function(){
+									swipe_handle();
+								})
+							}
+						}
+					}
+				}
+			});
+	    },
+	    next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    },
+	    read: function(isRead, msgId, msgType, index){
+	    	if(isRead == 1){
+	    		if(msgType == 1){
+					redirectToUrl("my_pay.html");
+				}else{
+					return false;
+				}
+	    	}
+	    	var postData = {"msgId":msgId}
+	    	var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'message/read',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.user.msgCount = data.msgCount;
+						_this.lists[index].isRead = 1;
+						setSessionStorage("user_info", JSON.stringify(_this.user));
+						if(msgType == 1){
+							redirectToUrl("my_pay.html");
+						}else{
+							_this.getCount();
+						}
+					}
+				}
+			});	    	
+	    },
+	    del: function(msgId, index){
+	    	var postData = {"msgId":msgId}
+	    	var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'message/delete',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.lists.splice(index, 1);
+					}
+				}
+			});	    	
+	    },
+        getCount: function(){
+            var postData = {};
+            var _this = this;
+            $.ajax({
+                'type': 'get',
+                'dataType': 'json',
+                'data': postData,
+                'url': appurl + 'member/count',
+                'success': function(data) {
+                    if(errorMessage(data)){
+                    	_this.count = data.body;
+                    }
+                }
+            });        	
+        }
+  	}
+});
+function swipe_handle(handle){
+	$(".line li .swipe-lr").each(function(){
+		$(this).swipe({
+			tap: function(event, target) {
+		        event.preventDefault();
+		    },
+			//Generic swipe handler for all directions
+			swipe:function(event, direction, distance) {
+				if(direction == 'left' && distance > 20){
+					$(this).animate({marginLeft:"-60"});
+				}
+				if(direction == 'right' && distance > 20){
+					$(this).animate({marginLeft:"0"});
+				}
+			}
+		});
+	})
+}
+</script>
+</body>
+</html>

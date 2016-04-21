@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我的活动</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>我的活动</h4>
+				</div>
+			</div>
+		</header>
+		<section class="customer">
+				<div class="customer-tab-line">
+					<ul class="tab-center">
+						<li class="active"><a data-toggle="tab" href="#sectionA"><h4>我报名的</h4></a></li>
+						<li><a data-toggle="tab" href="#sectionB"><h4>我发布的</h4></a></li>
+					</ul>
+				</div>
+				<div class="tab-content">
+					<div id="sectionA" class="tab-pane fade in active supply">
+						<div class="news-list">
+							<div class="cols-xs-12" v-for="item in joinList">
+								<dl id="join_list_{{ item.actId }}">
+									<dt><a href="../activity_detail.html?actId={{ item.actId }}"><img v-bind:src="item.image == '' ? './images/my_active_1.jpg' : item.image" class="img-responsive" /></a></dt><dd><div><a href="../activity_detail.html?actId={{ item.actId }}"><span class="title">{{ item.name.substring(0,10) }}</span></a></div><p>{{ item.content.substring(0,26) }}</p>
+									<div class="pull-right"><a class="btn btn-danger btn-xs" onclick="vm.cancelActivity({{ item.actId }})">取消报名</a></div></dd>
+								</dl>
+							</div>
+							<div style="clear:both"></div>
+							<div v-if="next_page_join == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next_join()">加载下一页</a></div><div v-if="next_page_join == 0"><p class="text-danger text-center">无更多数据</p></div>
+						</div>
+					</div>
+					<div id="sectionB" class="tab-pane fade" id="page_list_pub">
+						<div class="news-list" v-for="item in pubList">
+							<dl>
+								<dt><a href="../activity_detail.html?actId={{ item.info.actId }}"><img v-bind:src="item.info.image == '' ? '/images/my_active_1.jpg' : item.info.image" class="img-responsive" /></a></dt><dd><div><a href="../activity_detail.html?actId={{ item.info.actId }}"><span class="title">{{ item.info.name.substring(0,10) }}</span></a></div><p>{{ item.info.content.substring(0,26) }}</p><div v-if="item.info.isJoined == 1" class="pull-right"><a class="btn btn-danger btn-xs" v-on:click="cancelActivityPub(item.info.actId, $index)">取消报名</a></div></dd>
+							</dl>
+							<div class="join-user-list" v-if="item.info.checkStatus == 2">
+								<h4>成员信息（{{ item.list.length }}人）</h4>
+								<ul>
+									<li v-for="item in item.list">
+										<div class="left"><span class="avatar"><img v-bind:src="item.avatar == '' ? './images/avatar.png' : item.avatar" class="img-circle img-responsive" /></span><span>{{ item.username==''?'匿名':item.username }}</span><span><img v-bind:src="item.sex == 1 ? './images/male_icon.png' : './images/female_icon.png'" height="15" /></span></div><div class="right">联系方式: {{ item.mobile }}</div>
+									</li>
+								</ul>
+							</div>
+							<div style="clear:both;background:#f1f1f1;height:10px;border-top:1px solid #ededed;"></div>
+						</div>
+						<div style="clear:both;"></div>
+						<div v-if="next_page_pub == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next_pub()">加载下一页</a></div><div v-if="next_page_pub == 0"><p class="text-danger text-center">无更多数据</p></div>
+					</div>
+				</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		joinList:[],
+		pubList:[],
+		limit: 0,
+		page_join: 0,
+		page_pub: 0,
+		cityId: 0,
+		next_page_join: 0,
+		next_page_pub: 0
+	},
+	created: function () {
+		this.page_join = getGlobalVal('page');
+		this.page_pub = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+		this.cityId = getGlobalVal("cityId");
+		this.getList(0, false);
+		this.getPubList();
+	},
+  	methods: {
+	    getList: function (page, flush) {
+	    	if(!page){
+	    		page = this.page_join;
+	    	}else{
+	    		this.page_join = page;
+	    	}
+			var postData = {
+				'page':page,
+				'limit':this.limit
+			};
+	    	if(flush){
+	    		this.joinList = [];
+	    	}
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/geJoinList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.joinList.length == 0){
+							$("#sectionA").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page_join = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page_join = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.joinList.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page_join = 0;	
+								}else{
+									_this.next_page_join = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+	    next_join: function(){
+	    	var page = parseInt(this.page_join) + 1;
+	    	this.page_join = page;
+	    	this.getList(page)
+	    },	    
+	    cancelActivity: function(id) {
+	    	if(!confirm("确认取消报名?")){
+	    		return false;
+	    	}
+			var postData = {
+				"actId" : id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/cancel',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.getPubList(0, true);
+						$("#join_list_"+id).parent().remove();
+					}
+				}
+			});
+	    },
+	    cancelActivityPub: function(id, index) {
+	    	if(!confirm("确认取消报名?")){
+	    		return false;
+	    	}
+			var postData = {
+				"actId" : id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/cancel',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.getList(0, true);
+						_this.pubList[index].info.isJoined = 0;
+					}
+				}
+			});
+	    },
+	    getPubList: function(page, flush){
+	    	if(!page){
+	    		page = this.page_pub;
+	    	}else{
+	    		this.page_pub = page;
+	    	}
+	    	if(flush){
+	    		this.pubList = [];	
+	    	}
+			var postData = {
+				'page':page,
+				'limit':this.limit
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/getPubList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.pubList.length == 0){
+							$("#sectionB").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page_pub = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page_pub = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.pubList.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page_pub = 0;
+								}else{
+									_this.next_page_pub = 1;	
+								}
+							}
+						}
+					}
+				}
+			});	    	
+	    },
+	    next_pub: function(){
+	    	var page = parseInt(this.page_pub) + 1;
+	    	this.page_pub = page;
+	    	this.getPubList(page)
+	    },
+	    joinActivity: function(id){
+			var postData = {
+				"actId" : id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'activity/join',
+				'success': function(data) {
+					if(errorMessage(data)){
+						$("#handle_button_"+id).html('<a class="btn btn-danger btn-xs" onclick="vm.cancelActivity('+id+')">取消报名</a>');
+						_this.getPubList(0, true);
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

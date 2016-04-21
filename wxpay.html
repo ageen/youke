@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>微信支付</title>
+	</head>
+	<body>
+	<div align="center" style="margin:150px auto;font-weight:bold">
+		<table>
+			<tr>
+				<td style="line-height:35px;text-align:right;">支付方式:</td><td>微信支付</td>
+			</tr><tr>
+				<td style="line-height:35px;text-align:right;">支付订单号:</td><td id="orderSn"></td>
+			</tr><tr>
+				<td style="line-height:35px;text-align:right;">支付金额:</td><td id="orderAmount" style="color:#f87f2f;"></td>
+			</tr>
+		</table>
+		<button style="width:210px; height:50px; border-radius: 15px;background-color:#FE6714; border:0px #FE6714 solid; cursor: pointer;  color:white;  font-size:16px;" type="button" onclick="callpay()" disabled="disabled">立即支付</button>
+	</div>
+
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="./js/globel.js"></script>
+<script src="./js/check_login.js"></script>
+<script type="text/javascript">
+var jsApiParameters = false;
+$(document).ready(function(){
+	var postData = {};
+	postData.code = getQueryStringByName("code");
+	postData.orderSn = getQueryStringByName("orderSn");
+	postData.orderAmount = getQueryStringByName("orderAmount");
+	$("#orderSn").text(postData.orderSn);
+	$("#orderAmount").text(postData.orderAmount + "元");
+	$.ajax({
+		'type': 'post',
+		'data': postData,
+		'url': appurl + 'wxpay/post',
+		'success': function(data) {
+			if(data.code == 0) {
+				if (typeof WeixinJSBridge == "undefined") {
+				    if( document.addEventListener ) {
+				        document.addEventListener('WeixinJSBridgeReady', data.body.editAddress, false);
+				    }else if (document.attachEvent) {
+				        document.attachEvent('WeixinJSBridgeReady', data.body.editAddress); 
+				        document.attachEvent('onWeixinJSBridgeReady', data.body.editAddress);
+				    }
+				} else {
+					editAddress(data.body.editAddress);
+				}
+				jsApiParameters = eval('(' + data.body.jsApiParameters + ')');
+			} else {
+				alert('error: ' + data.message);
+				return false;
+			}
+		}
+	});
+});
+//调用微信JS api 支付
+function jsApiCall()
+{
+	WeixinJSBridge.invoke(
+		'getBrandWCPayRequest',
+		jsApiParameters,
+		function(res){
+			WeixinJSBridge.log(res.err_msg);
+			alert(res.err_code+res.err_desc+res.err_msg);
+		}
+	);
+}
+
+function callpay()
+{
+	if (typeof WeixinJSBridge == "undefined"){
+	    if( document.addEventListener ){
+	        document.addEventListener('WeixinJSBridgeReady', jsApiCall, false);
+	    }else if (document.attachEvent){
+	        document.attachEvent('WeixinJSBridgeReady', jsApiCall); 
+	        document.attachEvent('onWeixinJSBridgeReady', jsApiCall);
+	    }
+	}else{
+	    jsApiCall();
+	}
+}
+//获取共享地址
+function editAddress(editAddress)
+{
+	WeixinJSBridge.invoke(
+		'editAddress',
+		editAddress,
+		function(res){
+			var value1 = res.proviceFirstStageName;
+			var value2 = res.addressCitySecondStageName;
+			var value3 = res.addressCountiesThirdStageName;
+			var value4 = res.addressDetailInfo;
+			var tel = res.telNumber;
+			alert(value1 + value2 + value3 + value4 + ":" + tel);
+		}
+	);
+}
+</script>
+	</body>
+</html>

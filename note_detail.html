@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>帖子详情</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="note_list.html?fid={{ fid }}" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>{{ detail.subject.substring(0,8) }}</h4>
+				</div>
+			</div>
+		</header>
+		<section class="note-detail">
+			<div class="container">
+				<dl>
+					<dt>
+					<table width="100%">
+						<tr>
+							<td class="avatar">
+								<img v-bind:src="detail.avatar == '' ? './images/avatar.png' : detail.avatar" class="img-circle" />
+							</td>
+							<td class="info">
+								<div class="username">{{ detail.username == '' ? '匿名' : detail.username }}</div>
+								<span class="date">{{ detail.addtime }}</span>
+							</td>
+							<td class="favor">
+								<ul>
+									<a href="javascript:void(0)" onclick="vm.like({{ detail.tid }})"><li><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;<span id="like_count">{{ detail.likeCount }}</span></li></a>
+									<a href="note_reply.html?fid={{ fid }}&tid={{ detail.tid }}"><li><span class="glyphicon glyphicon-comment"></span>&nbsp;{{ detail.replyCount }}</li></a>
+								</ul>
+							</td>
+						</tr>
+					</table>
+					</dt>
+					<dd class="content">
+					<div v-for="img in detail.images">
+						<img v-bind:src="img" class="img-responsive">	
+					</div>
+					<p>{{ detail.message }}</p>
+					</dd>
+				</dl>
+			</div>
+		</section>
+		<section class="comment-list">
+			<h4>回复列表</h4>
+			<div id="page_list">
+				<dl v-for="reply in replies">
+					<dt class="avatar"><img v-bind:src="reply.avatar == '' ? './images/avatar.png' : reply.avatar" class="img-circle img-responsive" /></dt>
+					<dd>
+						<div class="username">{{ reply.isOwn == 0 ? (reply.username=='' ? '匿名' : reply.username) : '我' }}</div>
+						<span class="date">{{ reply.replyTime }}</span>
+						<p>{{ reply.message }}</p>
+					</dd>
+				</dl>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		detail: [],
+		tid: '',
+		fid: '',
+		limit: 0,
+		page: 0,
+		replies: [],
+		next_page: 0
+	},
+	created: function () {
+		this.tid = getUrlParam('tid');
+		this.fid = getUrlParam('fid');
+		if(this.tid == ''){
+			return false;
+		}
+		this.limit = getGlobalVal('limit');
+		this.page = getGlobalVal('page');
+		this.getDetail();
+		this.getReplyList()
+	},
+  	methods: {
+	    getDetail: function () {
+			var postData = {
+				'tid':this.tid
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.detail = data.body;
+					}
+				}
+			});
+	    },
+	    getReplyList: function () {
+			var postData = {
+				'tid': this.tid,
+				'page': this.page,
+				'limit': this.limit
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/getReplyList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.lists.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>');
+							_this.next_page = false;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.replies.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;	
+								}else{
+									_this.next_page = 1;
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+		next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getReplyList(page)
+	    },
+	    like: function(tid) {
+			var postData = {
+				'tid': tid
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'post',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/like',
+				'success': function(data) {
+					if(errorMessage(data)){
+						var like_count = parseInt($("#like_count").text());
+						$("#like_count").text(like_count + 1);
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

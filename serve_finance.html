@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>金融服务</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/carousel-swipe.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>金融服务</h4>
+				</div>
+			</div>
+		</header>
+
+		<div class="advertise">
+			<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+				<!-- Carousel indicators -->
+				<ol class="carousel-indicators" id="banner-generic">
+					<template  v-if="sliders.length > 1">
+					<li v-for="slider in sliders" data-target="#carousel-example-generic" data-slide-to="{{ $index }}" class="{{ $index==0?'active':'' }}"></li>
+					</template>
+				</ol>
+
+				<div class="carousel-inner" role="listbox" id="banner">
+					<div v-for="slider in sliders" class="item {{ $index==0?'active':'' }}">
+						<a href="{{ slider.link }}"><img v-bind:src="slider.image" alt="{{ slider.name }}"></a>
+					</div>
+				</div>
+
+				<!-- Controls -->
+				<a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev"><span class="sr-only">Previous</span>
+				</a>
+				<a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next"><span class="sr-only">Next</span>
+				</a>
+			</div>
+		</div>
+		
+		<section class="serve-list">
+			<div class="container">
+				<div class="row">
+					<div class="cols-xs-12">
+						<a href="fund_raise.html"><img src="./images/finance_serve_1.jpg" class="img-responsive" /></a>
+					</div>
+					<div class="cols-xs-12">
+						<a href="{{links.tzlc}}" target="_blank"><img src="./images/finance_serve_2.jpg" class="img-responsive" /></a>
+					</div>
+					<div class="cols-xs-12">
+						<a href="{{links.hhcd}}" target="_blank"><img src="./images/finance_serve_3.jpg" class="img-responsive" /></a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+$("#carousel-example-generic").carousel()
+var vm = new Vue({
+	el: "#app",
+	data: {
+		sliders: [],
+		links: [],
+		pos: 3,
+		cityId: 0
+	},
+	created: function () {
+		this.cityId = getGlobalVal("cityId");
+	    this.getAds(this.pos);
+	    this.getLinks();
+	},
+  	methods: {
+	    getAds: function (pos) {
+			var postData = {
+				'cityId': this.cityId,
+				'pos':pos
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'global/getAds',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.sliders = data.body;
+					}
+				}
+			});
+	    },
+	    getLinks: function () {
+			var postData = {
+				'cityId': this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'global/getLinks',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.links = data.body;
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

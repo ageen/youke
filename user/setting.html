@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我的优租之家</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-chevron-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>设置</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix" style="height:15px;"></div>
+		<section class="user-list">
+			<div class="container">
+				<dl>
+					<dt><a href="my_feedback.html"><img src="./images/setting_icon_1.png" class="img-responsive"></a></dt><a href="my_feedback.html"><dd><span class="pull-left">问题反馈</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="aboutus.html"><img src="./images/setting_icon_2.png" class="img-responsive"></a></dt><a href="aboutus.html"><dd><span class="pull-left">关于我们</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="javascript:void()" onclick="loginOut()"><img src="./images/setting_icon_3.png" class="img-responsive"></a></dt><a href="javascript:void()" onclick="loginOut()"><dd><span class="pull-left">退出账号</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+function loginOut(){
+	if (!confirm('退出账号？')) {
+	    // Save it!
+	    return false;
+	}
+	var postData = {}
+	$.ajax({
+		'type': 'GET',
+		'dataType': 'json',
+		'data': postData,
+		'url': appurl + 'account/logout',
+		'success': function(data) {
+			if(errorMessage(data)){
+				sessionStorage.removeItem("user_info")
+				sessionStorage.removeItem("prev_url")
+				redirectToUrl("../login.html");
+			}
+		}
+	});	
+}
+</script>
+	</body>
+</html>

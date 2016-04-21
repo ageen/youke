@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>修改头像</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<link rel="stylesheet" href="../js/diyUpload/css/webuploader.css">
+		<link rel="stylesheet" href="../js/diyUpload/css/diyUpload.css">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/jquery.validate.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>修改头像</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix" style="height:10px;"></div>
+		<section class="customer">
+			<div class="container">
+				<form class="login_form" id="handle_form" onsubmit="return false;">
+					<div class="form-group">
+						<label class="control-label col-xs-4">选择头像</label>
+						<div class="col-xs-8" id="box">
+							<div id="preview"></div>
+							<span style="color:#F00;">(*最佳上传头像宽高比1:1)</span>
+						</div>
+					</div>
+					<div class="clearfix"></div>
+					<button class="btn btn-block btn-lg bg-color-orange" onclick="vm.setAvatar()">保 存</button>
+					<input type="hidden" name="option" value="avatar">
+				</form>
+			</div>
+		</section>
+
+
+<script type="text/javascript" src="../js/diyUpload/js/webuploader.html5only.min.js"></script>
+<script type="text/javascript" src="../js/diyUpload/js/diyUpload.js"></script>
+<script type="text/javascript">
+var image = '';
+var vm = new Vue({
+	el: "#app",
+	data: {
+		user_info: {}
+	},
+	created: function () {},
+  	methods: {
+	    setAvatar: function () {
+	    	if(image == ''){
+	    		alert('选择头像');
+	    		return false;
+	    	}
+	    	var postData = $("#handle_form").serialize();
+	    	postData = postData + "&avatar="+image;
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'data': postData,
+				'url': appurl + 'account/update',
+				'success': function(data) {
+					if(errorMessage(data)){
+						redirectToUrl("my_info.html");
+					}
+				}
+			});
+	    }
+  	}
+})
+//TODO 图片上传
+$('#preview').diyUpload({
+	url:appurl + 'global/upload',
+	success:function( data ) {
+		image = data.body[0].image;
+	},
+	error:function( err ) {
+		console.info( err );
+	}
+});
+</script>
+	</body>
+</html>

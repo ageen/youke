@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>退房管理</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>退房管理</h4>
+				</div>
+			</div>
+		</header>
+		<section id="house-list" class="house-list">
+			<div class="container" id="page_list">
+				<dl v-for="list in lists">
+					<dt><img v-bind:src="list.logo == '' ? './images/house_1.jpg' : list.logo" class="img-responsive" /></dt><dd><table>
+					<tr>
+						<td colspan="2"><h4 class="pull-left">{{ list.bName }}</h4><span class="pull-right"><span v-if="list.status == 3" class="badge bg-color-green-empty">已成功</span></span></td>
+					</tr>
+					<tr>
+						<td colspan="2"><span class="date"><span class="glyphicon glyphicon-list-alt"></span> {{ list.hName }}</span></td>
+					</tr>
+					<tr>
+						<td colspan="2"><span class="date"><span class="glyphicon glyphicon-map-marker"></span> {{ list.address }}</span></td>
+					</tr>
+					<tr>
+						<td class="price">租金: <span class="bigger">{{ list.price }}</span>/月</td>
+						<td id="status_{{ list.orderId }}" class="text-right" v-if="list.status == 1"><a href="javascript:void(0)" onclick="showModal(this)" class="departure_button" data-id="{{ list.orderId }}" data-index="{{ $index }}"><span class="badge btn-round-15 bg-color-cyan">申请退房</span></a></td>
+						<td class="text-right" v-if="list.status == 2"><span class="badge btn-round-15 bg-color-magenta">处理中</span></td>
+						<td class="text-right" v-if="list.status == 3"><span class="badge btn-round-15 bg-color-green">申请成功</span></td>
+					</tr></table></dd>
+				</dl>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+			</div>
+		</section>
+		<div id="messageModal" class="modal fade">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<form id="message_form" onsubmit="return false;">
+						<div class="form-group">
+						<label for="departure_reason"><h4>退房原因</h4></label>
+						<textarea class="form-control" name="reason" rows="10"></textarea>
+						</div>
+						<div>
+						<button class="btn btn-link" data-dismiss="modal">取消</button><button class="btn btn-link" type="button" onclick="vm.departure()">确认</button>
+						<input type="hidden" name="orderId">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
+<!--jquery plugin-->
+
+<script type="text/javascript">
+$(document).ready(function(e){
+	$("#messageModal").on("hidden.bs.modal", function() {
+		$(this).removeData("bs.modal");
+	});
+});
+function showModal(handle){
+	$("#messageModal").modal();
+	vm.list_index = $(handle).data("index");
+	$("#message_form input[name=orderId]").val($(handle).data("id"))
+}
+
+var vm = new Vue({
+	el: "#app",
+	data: {
+		page: 0,
+		limit: 0,
+		lists: [],
+		next_page: 0,
+		list_index: 0
+	},
+	created: function () {
+		this.page = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+		this.getList();
+	},
+  	methods: {
+  		getList: function (page) {
+  	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	}
+			var postData = {
+				'page': this.page,
+				'limit': this.limit
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'GET',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'member/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.lists.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.lists.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;
+								}else{
+									_this.next_page = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+	    next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    },
+	    departure: function(){
+			var postData = $("#message_form").serializeObject();
+			if(postData.reason == ''){
+				errorMessageText("请填写原因！");
+				return false;
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'member/applyCheckOut',
+				'success': function(data) {
+					if(errorMessage(data)){
+						$("#messageModal").modal('hide');
+						alert(data.message);
+						_this.lists[_this.list_index].status = 2;
+					}
+				}
+			});	    	
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

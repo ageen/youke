@@ -1,0 +1,85 @@
+@charset "utf-8";
+.carousel .item{
+/*	position: relative;*/
+}
+/* Align slide image horizontally center */
+.carousel .item img{
+    margin: 0 auto; 
+}
+
+/* Align responsive image horizontally center */
+.img-responsive {
+    margin: 0 auto;
+}
+.glyphicon{
+	top:2px;
+}
+
+/*banner选中小按钮的颜色*/
+.carousel-indicators .active{
+  background-color: #ff7314 !important;
+}
+.carousel-indicators li{
+	 background-color: #fff !important;
+}
+/*去除a标签下划线*/
+a:link{
+text-decoration:none;
+}
+a:visited{
+text-decoration:none;
+}
+a:hover{
+text-decoration:none;
+}
+a:active{
+text-decoration:none;
+}
+.btn.focus, .btn:focus, .btn:hover {
+    color: #fff;
+}
+/*---------------------------------------整个网站字体颜色---------------------------------------*/
+/*区域灰色*/
+.color-01{
+	color: #3e3e3e;
+}
+/*标题黑色*/
+.color-02{
+	color: #080808;
+}
+/*注释灰色*/
+.color-03{
+	color: #9e9e9e;
+}
+/*橘色*/
+.color-04{
+	color: #ff7314;
+}
+
+/*蓝色*/
+.color-05{
+	color: #4daaef;
+}
+/*提示色*/
+.color-06{
+	color: #fe4319;
+}
+/*灰色字体*/
+.color-07{
+	color: #666;
+}
+/*深橘色*/
+.color-08{
+	color: #fe4319;
+}
+.progress{
+	background-color:#dedede;
+	height: 10px;
+	margin-bottom: 15px;
+}
+.progress-bar-warning{
+	background-color: #ff7314;
+}
+.label-primary{
+	background-color: #9ab5ea;
+}

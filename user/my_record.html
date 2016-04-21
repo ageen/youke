@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>看房记录</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();"><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>看房记录</h4>
+				</div>
+			</div>
+		</header>
+		<section id="house-list" class="house-list">
+			<div class="container" id="page_list">
+				<ul>
+					<li v-for="item in list">
+						<h4>{{ item.bName }}</h4>
+						<div class="introduce date">{{ item.room }}室 {{ item.hName }}</div>
+						<div class="date">预约时间: {{ item.bookingTime }}</div>
+					</li>
+				</ul>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+				</div>
+			</div>
+		</section>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		list: [],
+		page: 0,
+		limit: 0,
+		next_page: 0
+	},
+	created: function () {
+		this.page = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+	    this.getList();
+	},
+  	methods: {
+	    getList: function (page) {
+	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	}
+			var postData = {
+				page: this.page,
+				limit: this.limit
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'data': postData,
+				'url': appurl + 'house/getBookings',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.list.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								$.each(data.body, function(k,v){
+									data.body[k].bookingTime = timestampToDate(v.bookingTime, '-', 'datetime');
+								});
+								for(var i=0; i<data.body.length; i++){
+									_this.list.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;	
+								}else{
+									_this.next_page = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+	    next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

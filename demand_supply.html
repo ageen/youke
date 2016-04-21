@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>反客为主</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content"><h4>反客为主</h4>
+					<div class="header-bar-left"><a href="user/my_pub_info.html">发布信息</a></div></div>
+				</div>
+			</div>
+		</header>
+		<section class="customer">
+			<div class="customer-tab-line">
+			<ul class="tab-center">
+				<li class="active"><a data-toggle="tab" href="#sectionB"><h4>供 应</h4></a></li>
+				<li><a data-toggle="tab" href="#sectionA"><h4>需 求</h4></a></li>
+			</ul>
+			</div>
+			<div class="tab-content">
+				<div id="sectionB" class="tab-pane fade in active">
+					<div class="news-list" id="page_list_demand">
+						<div class="cols-xs-12" v-for="demand in demands" id="demand_row_{{ $index }}">
+							<dl>
+								<a href="ds_detail.html?id={{ demand.id }}">
+								<dt><img v-bind:src="demand.image=='' ? './images/news.jpg' : demand.image" class="img-responsive" /></dt><dd>
+								<div class="clearfix"><span class="title pull-left">{{ demand.title }}</span><span class="date pull-right">{{ demand.timeStr }}</span></div>
+								<div class="clearfix"></div>
+								<p>{{ demand.content.substring(0,26) }}</p>
+								<div v-if="demand.isOwn == 1" class="pull-right"><a class="btn btn-danger btn-xs" v-on:click="deleteRow(demand.id, 2, $index)">删除</a></div></dd></a>
+							</dl>
+						</div>
+					</div>
+					<div v-if="next_page_demand == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next_demand()">加载下一页</a></div><div v-if="next_page_demand == 0"><p class="text-danger text-center">无更多数据</p></div>
+				</div>
+				<div id="sectionA" class="tab-pane fade">
+					<div class="news-list" id="page_list_supply">
+						<a href="ds_detail.html?id={{ supply.id }}"><div class="cols-xs-12" v-for="supply in supplies" id="supply_row_{{ $index }}">
+							<dl>
+								<dt><img v-bind:src="supply.image=='' ? './images/news.jpg' : supply.image" class="img-responsive" /></dt><dd>
+									<div class="clearfix"><span class="title pull-left">{{ supply.title }}</span><span class="date pull-right">{{ supply.timeStr }}</span></div>
+									<div class="clearfix"></div>
+									<p>{{ supply.content.substring(0,26) }}</p>
+									<div v-if="supply.isOwn == 1" class="pull-right"><a class="btn btn-danger btn-xs" v-on:click="deleteRow(supply.id, 1, $index)">删除</a></div></dd>
+								</dd>
+							</dl>
+						</div>
+						</a>
+						<div v-if="next_page_supply == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next_supply()">加载下一页</a></div><div v-if="next_page_supply == 0"><p class="text-danger text-center">无更多数据</p></div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		supplies: [],
+		demands: [],
+		page_supply: 0,
+		page_demand: 0,
+		limit: 0,
+		cityId: 0,
+		is_login: false,
+		next_page_supply: 0,
+		next_page_demand: 0
+	},
+	created: function () {
+		this.page_supply = getGlobalVal('page');
+		this.page_demand = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+		this.cityId = getGlobalVal('cityId');
+		this.getSupplies();
+		this.getDemands();
+		if(getGlobalVal("user_info")){
+			this.is_login = true;	
+		}
+	},
+  	methods: {
+	    getSupplies: function (page) {
+	    	if(!page){
+	    		page = this.page_supply;
+	    	}else{
+	    		this.page_supply = page;
+	    	}	    	
+			var postData = {
+				'page':page,
+				'limit':this.limit,
+				'cityId':this.cityId,
+				'type': 1
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'info/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.supplies.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page_supply = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page_supply = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.supplies.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page_supply = 0;
+								}else{
+									_this.next_page_supply = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+	    getDemands: function (page) {
+	    	if(!page){
+	    		page = this.page_demand;
+	    	}else{
+	    		this.page_demand = page;
+	    	}	
+			var postData = {
+				'page':page,
+				'limit':this.limit,
+				'cityId':this.cityId,
+				'type': 2
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'info/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.demands.length == 0){
+							$("#page_list_demand").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page_demand = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page_demand = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.demands.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page_demand = 0;
+								}else{
+									_this.next_page_demand = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+	    deleteRow: function(id, type, index){
+			var postData = {
+				'id': id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'info/delete',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(type == 1){
+							//_this.getSupplies();
+							$("#supply_row_"+index).remove();
+						}else if(type == 2){
+							$("#demand_row_"+index).remove();
+						}else{
+							return false;
+						}
+					}
+				}
+			});
+	    },
+
+	    next_supply: function(){
+	    	var page = parseInt(this.page_supply) + 1;
+	    	this.page_supply = page;
+	    	this.getSupplies(page);
+	    },
+
+	    next_demand: function(){
+	    	var page = parseInt(this.page_demand) + 1;
+	    	this.page_demand = page;
+	    	this.getDemands(page);
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

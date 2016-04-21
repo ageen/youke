@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>众筹详情</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./js/lc_witch/lc_switch.css" rel="stylesheet">
+		<link href="./css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/carousel-swipe.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+		<script src="./js/lc_witch/lc_switch.min.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>众筹详情</h4>
+				</div>
+			</div>
+		</header>
+		
+		<section class="fund-raise-detail">
+			<div id="myCarousel" class="carousel slide" data-ride="carousel">
+				<!-- Carousel indicators -->
+				<ol class="carousel-indicators">
+					<template  v-if="images.length > 1">
+					<li data-target="#myCarousel" data-slide-to="{{ $index }}" class="{{ $index == 0 ? 'active' : '' }}" v-for="image in images"></li>
+					</template>
+				</ol>
+				<!-- Wrapper for carousel items -->
+				<div class="carousel-inner">
+					<div class="item {{ $index == 0 ? 'active' : '' }}" v-for="image in images">
+						<img v-bind:src="image">
+					</div>
+				</div>
+				<a class="carousel-control left" href="#myCarousel" data-slide="prev"></a>
+				<a class="carousel-control right" href="#myCarousel" data-slide="next"></a>
+			</div>
+			<div class="container">
+				<dl>
+					<dt>
+						<div class="title">
+							<span class="pull-left">{{ detail.name }}</span><span class="pull-right">所属行业: {{ detail.industry }}</span>
+						</div>							
+					</dt>
+					<dd class="introduce clearfix">{{ detail.content }}</dd>
+					<dd>
+						<table width="100%">
+							<tr>
+								<td colspan="3">
+									<div class="clearfix title"><span class="price pull-left">共需{{ detail.targetMoney }}元</span><span class="pull-right">{{ detail.status == 0 ? "进行中" : (detail.status == 1 ? "成功未结束" : (detail.status == 2 ? "成功已结束" : "失败")) }}</span></div>
+									<div class="progress">
+									    <div class="progress-bar  progress-bar-warning" v-bind:style="'width:'+detail.progress+'%;'">
+									        <span class="sr-only">{{ detail.progress }}% Complete</span>
+									    </div>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="sign_icon"><img src="./images/finance_icon_1.png" class="img-responsive" /></div>
+									<div class="title">众筹进度</div>
+									<div style="color:#46ae76"><h3>{{ detail.progress }}%</h3></div>
+								</td>
+								<td>
+									<div class="sign_icon"><img src="./images/finance_icon_2.png" class="img-responsive" /></div>
+									<div class="title">已筹金额</div>
+									<div><h3><span style="color:#f68527">{{ detail.currentMoney }}</span></h3></div>
+								</td>
+								<td>
+									<div class="sign_icon"><img src="./images/finance_icon_3.png" class="img-responsive" /></div>
+									<div class="title">剩余天数</div>
+									<div style="color:#409fe6"><h3>{{ detail.lastDay }}</h3></div>
+								</td>
+							</tr>
+						</table>
+					</dd>
+				</dl>
+			</div>
+			<div class="supporter">
+				<div class="container">
+					<div class="clearfix"><span class="pull-left title">参与支持</span><span class="pull-right title">共{{ detail.supportNum }}人</span></div>
+					<div class="row">
+						<div class="col-xs-2" v-for="item in supportList" track-by="$index"><div class="avatar"><img v-bind:src="item == '' ? './user/images/avatar.png':item" class="img-circle" /></div></div>
+					</div>
+					<a class="button" role="button" id="invest_button" v-if="detail.status==0||detail.status==1&&detail.isSupport==0">我要投资</a>
+					<div class="alert alert-success text-center" v-if="detail.status==2">投资成功</div>
+					<div class="alert alert-danger text-center" v-if="detail.status==3">投资失败</div>
+				</div>
+			</div>
+		</section>
+
+		<div id="invest-popup">
+			<div id="myModal" class="modal fade">
+				<div class="popup-fixed-bottom">
+					<div class="modal-dialog">
+						<div class="title">项目: {{ detail.name }}</div>
+						<form class="pay-form" id="pay-form">
+							<div class="row">
+								<div class="col-xs-8">
+						            <div class="input-group">
+						                <span class="input-group-addon">投资</span>
+						                <input type="number" pattern="[0-9]*" name="totalAmount" class="form-control" placeholder="投资金额">
+						                <span class="input-group-addon">元</span>
+						            </div>
+								</div>
+									<span class="tip" style='line-height:30px;'><span class="glyphicon glyphicon-exclamation-sign" style="color:#ff7314"></span>请输入整数</span>
+							</div>
+							<ul>
+								<li>
+									<div class="inline left"><img src="./images/pay_icon_1.png" /><span>余额支付</span></div>
+									<div class="inline right"><input type="checkbox" name="selectBalance" value="1" class="lcs_check" checked="checked" /></div>
+								</li>
+								<li>
+									<div class="inline left"><img src="./images/pay_icon_2.png" /><span>支付宝支付</span></div>
+									<div class="inline right">                           
+					                    <div class="radio radio-primary">
+					                        <input type="radio" name="payId" id="radio1" value="1">
+					                        <label for="radio1"></label>
+					                    </div>
+                        			</div>
+								</li>
+								<li>
+									<div class="inline left"><img src="./images/pay_icon_3.png" /><span>微信支付</span></div>
+									<div class="inline right">
+					                    <div class="radio radio-primary">
+					                        <input type="radio" name="payId" id="radio2" value="2">
+					                        <label for="radio2"></label>
+					                    </div>
+                        			</div>
+								</li>
+							</ul>
+						    <div class="submit-button bg-color-dark-pink">
+						    	<a href="javascript:void(0)" onclick="vm.confirmPay()">确认支付</a>
+						    </div>
+						    <input type="hidden" name="pId" value="{{ detail.pId }}">
+						    <input type="hidden" name="source" value="wap">
+						</form>
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="aliPay" style="display:none"></div>
+
+<script type="text/javascript">
+$("#myCarousel").carousel()
+	$(document).ready(function(e) {
+		var flag = true;
+		$('input.lcs_check').lc_switch();
+		$('input[type=radio]').click(function(event){
+			this.checked = flag;
+			flag = !flag;
+		});
+	});
+
+	var vm = new Vue({
+		el: "#app",
+		data: {
+			detail: [],
+			images: [],
+			supportList:[],
+			pId: '',
+			cityId: 0,
+			balance: 0
+		},
+		created: function () {
+			this.cityId = getGlobalVal("cityId");
+			this.pId = getUrlParam("pId");
+			this.getDetail();
+			this.getBalace();
+		},
+	  	methods: {
+		    getDetail: function () {
+				var postData = {
+					'pId':this.pId,
+					'cityId':this.cityId
+				};
+				var _this = this;
+				$.ajax({
+					'type': 'get',
+					'dataType': 'json',
+					'data': postData,
+					'url': appurl + 'project/getInfo',
+					'success': function(data) {
+						if(errorMessage(data)){
+							var img_arr;
+							var progress = parseInt(data.body.progress*100) > 100 ? 100 : parseInt(data.body.progress*100);
+							data.body.progress = progress;
+							data.body.images = data.body.images[0].split(",");
+							_this.detail = data.body;
+							_this.images = _this.detail.images;
+							_this.supportList = _this.detail.supportList;
+							// after updated
+							_this.$nextTick(function(){
+								$("#invest_button").click(function(){
+									if(!getGlobalVal("user_info")){
+										//前一个url
+										setSessionStorage("prev_url", window.location.href);
+							    		redirectToUrl("login.html");
+							    		return false;
+							    	}
+							    	$("#pay-form")[0].reset();
+									$("#myModal").modal();
+								});
+							});
+						}
+					}
+				});
+		    },
+
+		    getSupport: function(){
+				var postData = {
+					'pId':this.pId,
+					'cityId':this.cityId
+				};
+				var _this = this;
+				$.ajax({
+					'type': 'get',
+					'dataType': 'json',
+					'data': postData,
+					'url': appurl + 'project/getInfo',
+					'success': function(data) {
+						if(errorMessage(data)){
+							data.body.progress = parseInt(data.body.progress);
+							_this.detail = data.body;
+							_this.images = _this.detail.images;
+							_this.supportList = _this.detail.supportList;
+						}
+					}
+				});		    	
+		    },
+
+		    confirmPay: function(){
+		    	var postData = $("#pay-form").serializeObject();
+		    	var payId = false;
+		    	var totalAmount = parseInt(postData.totalAmount);
+		    	var balance = parseInt(this.balance)
+		    	$.each(postData, function(k, v){
+		    		if(postData.payId == undefined){
+		    			if(postData.selectBalance == 1){
+		    				if(balance < totalAmount){
+		    					errorMessageText("余额不足支付")
+		    				}else{
+			    				postData.payId = 0;
+			    				payId = 0;
+		    				}
+		    			}else{
+		    				errorMessageText("请选择支付方式")
+		    			}
+		    		}else{
+						if(postData.selectBalance != 1){
+							postData.selectBalance = 0;
+		    			}		    			
+		    			payId = postData.payId;
+		    		}
+		    	});
+		    	if(payId === false){
+		    		return false;
+		    	}
+		    	if(payId == 2){
+		    		postData.tradeType = "JSAPI";
+		    	}
+				var _this = this;
+				$.ajax({
+					'type': 'post',
+					'dataType': 'json',
+					'data': postData,
+					'url': appurl + 'project/support',
+					'success': function(data) {
+						if(errorMessage(data)){
+							if(payId == 1){
+								$("#aliPay").html(data.body);
+								return false;
+							}else if(payId == 2){
+								redirectToUrl(data.body.url);
+							}else{
+								alert('支付订单号为：'+data.body.orderSn);
+								redirectToUrl("fund_raise_detail.html?pId="+_this.pId);
+							}
+						}
+					}
+				});	
+		    },
+
+		    getBalace: function(){
+		    	if(!getGlobalVal("user_info")){
+		    		return false;
+		    	}
+				var postData = {};
+				var _this = this;
+				$.ajax({
+					'type': 'get',
+					'data': postData,
+					'url': appurl + 'account/getInfo',
+					'success': function(data) {
+						if(errorMessage(data)){
+							_this.balance = data.body.balance
+						}
+					}
+				});
+		    }
+	  	}
+	});
+</script>
+	</body>
+</html>

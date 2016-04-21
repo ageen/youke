@@ -1,0 +1,64 @@
+<form class="form-horizontal" id="book-form">
+	<div class="form-group">
+		<label for="order-time" class="control-label col-xs-3">预约时间</label>
+		<div class="col-xs-8">
+			<input type="text" class="form-control" name="bookingTime" id="bookingTime" placeholder="选择时间" readonly="readonly">
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="inputPassword" class="control-label col-xs-3">性别</label>
+		<div class="col-xs-9 gender">
+			<div class="radio radio-primary">
+				<input type="radio" name="sex" id="radio1" value="1">
+				<label for="radio1">男</label>
+			</div>
+			<div class="radio radio-primary">
+				<input type="radio" name="sex" id="radio2" value="2">
+				<label for="radio2">女</label>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="inputEmail" class="control-label col-xs-3">手机号</label>
+		<div class="col-xs-8">
+			<input type="text" class="form-control" name="mobile" placeholder="输入手机号">
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="inputEmail" class="control-label col-xs-3">留言</label>
+		<div class="col-xs-8">
+			<textarea class="form-control" name="message"></textarea>
+		</div>
+	</div>
+	<div class="submit-button bg-color-orange">
+		<a href="javascript:void(0)" onclick="vm.booking()">提交预约</a>
+	</div>
+</form>
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+$(document).ready(function(e) {
+	$('input.lcs_check').lc_switch();
+	$('#bookingTime').date({theme:"datetime"}, check_booking_time);
+	var user = JSON.parse(getGlobalVal('user_info'))
+	$("input[name=mobile]").val(user.mobile);
+	$("input[name=sex]").each(function(index,elem){
+		if($(elem).val() == user.sex){
+			$(elem).attr("checked","checked")
+		}
+	});
+	$("#book-form").validate({
+		errorPlacement: function(error, element) {}
+	});
+});
+function check_booking_time(bookTime){
+	var now = new Date().format("yyyy-MM-dd hh:mm:ss");
+	if(dateDiff(bookTime,now) == false){
+		$("#bookingTime").val('')
+		errorMessageText("时间选择错误！");
+	}else{
+		$("#response-message").fadeOut();
+		$("#bookingTime").val(bookTime)
+	}
+}
+</script>

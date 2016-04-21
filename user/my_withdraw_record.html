@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>提现申请记录</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>提现申请记录</h4>
+				</div>
+			</div>
+		</header>
+		<section id="house-list" class="house-list" v-cloak>
+			<div class="container">
+				<ul>
+					<li v-for="item in list">
+						<h4>申请人：{{ item.name }}&nbsp;&nbsp;&nbsp;</h4>
+						<div>提现账号： {{ item.account }}</div>
+						<div>提现金额：<span class="price">{{ item.money }}</span></div>
+						<div class="date">联系方式：{{ item.mobile }}</div>
+						<div class="date">申请时间: {{ item.applyTime }}</div>
+						<span class="badge btn-round-15 bg-color-cyan" v-if="item.status == 1">已申请</span>
+						<span class="badge btn-round-15 bg-color-magenta" v-if="item.status == 2">处理中</span>
+						<span class="badge btn-round-15 bg-color-green" v-if="item.status == 3">申请成功</span>
+					</li>
+				</ul>
+			</div>
+		</section>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		list: {},
+		page: 0,
+		limit: 0
+	},
+	created: function () {
+		this.page = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+	    this.getList();
+	},
+  	methods: {
+	    getList: function () {
+			var postData = {
+				page: this.page,
+				limit: this.limit
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'data': postData,
+				'url': appurl + 'member/getWithdrawRecord',
+				'success': function(data) {
+					if(errorMessage(data)){
+						$.each(data.body, function(k,v){
+							data.body[k].applyTime = timestampToDate(v.applyTime);
+						});
+						_this.list = data.body;
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

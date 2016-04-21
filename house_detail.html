@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html id="app">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>{{ house.name }}</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>{{ house.name }}</h4>
+				</div>
+			</div>
+		</header>
+		<section class="house-detail">
+			<div class="container">
+				<ul id="house-detail">
+					<li><img v-bind:src="house.logo" class="img-responsive" /></li>
+					<li>
+						<span class="pull-left"><span class="glyphicon glyphicon-map-marker"></span> {{ house.address }}</span>
+						<span class="pull-right">共{{ house.floors }}层</span>
+					</li>
+					<li>
+						<span class="glyphicon glyphicon-earphone"></span> 联系电话：{{ house.telephone }}
+					</li>
+					<li class="border">
+						<span class="glyphicon glyphicon-info-sign pull-left"></span>
+						<p class="pull-left" id="wrap">{{ house.routes }}</p>
+						<div id="read-more" class="pull-right"></div>
+					</li>
+				</ul>
+			</div>
+		</section>
+		<div class="container" style="padding:10px 0 0 5px;color:#6a6a6a;">户型信息</div>
+		<section class="house-list">
+			<div class="container" id="house-list">
+				<dl v-for="household in households">
+				<a v-bind:href="household.isLong == 1 ? 'rent_long.html?hId='+household.hId : 'rent_short.html?hId='+household.hId">
+					<dt><img v-bind:src="household.image" class="img-responsive" /></dt><dd><table>
+						<tr>
+							<td colspan="3">
+							<span class="title pull-left">{{ household.name.substring(0,10) }}</span>
+							<div class="pull-right">{{ household.area }}m²</div></td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<span class="introduce">{{ household.intro.substring(0,26) }}</span></a>
+							</td>
+						</tr>
+						<tr>
+							<td class="price"><span class="bigger">{{ household.minPrice }} - {{ household.maxPrice }}</span>元/月</td>
+							<td style="text-align:right;"><span v-if="household.isLong == 1" class="badge btn-round-15 long-rent m-l-5">长租</span><span v-if="household.isShort == 1" class="badge btn-round-15 short-rent m-l-5">短租</span></td>
+						</tr>
+					</table></dd>
+				</a>
+				</dl>
+			</div>
+		</section>
+		<div class="clearfix" style="height:100px;"></div>
+		<footer id="footer">
+			<div class="footer-fixed-bottom">
+				<div class="row">
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="index.html"><img src="./images/footbar_icon_home.png" class="img-responsive" /></a></dt>
+							<dd><a href="index.html">首页</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="house_list.html"><img src="./images/footbar_icon_rent_a.png" class="img-responsive" /></a></dt>
+							<dd><a href="house_list.html" class="active">我要租房</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt>
+							<a href="user/my_message.html"><img src="./images/footbar_icon_message.png" class="img-responsive" /></a>
+							<span v-if="user.msgCount > 0" class="badge footer-fixed-bottom-notify">{{ user.msgCount }}</span>
+							</dt>
+							<dd><a href="user/my_message.html">消息</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="user/main.html"><img src="./images/footbar_icon_user.png" class="img-responsive" /></a></dt>
+							<dd><a href="user/main.html">个人中心</a></dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</footer>
+		<div id="overlay"></div>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		house: [],
+		households: [],
+		id: getUrlParam('id'),
+		user: []
+	},
+	created: function(){
+		this.getDetail(this.id);
+		this.user = JSON.parse(getGlobalVal('user_info'))
+	},
+	methods: {
+		getDetail: function(id){
+			var postData = {
+				'id':id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'house/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.house = data.body;
+						_this.households = data.body.households;
+						_this.$nextTick(function () {
+					        var defHeight = $('#wrap').height();
+					        _this.foldText(defHeight)
+					    })
+					}
+				}
+			});
+		},
+		foldText: function(defHeight){
+			var slideHeight = 30; // px
+			if(defHeight >= slideHeight){
+				$('#wrap').css('height' , slideHeight + 'px');
+				$('#read-more').append('<a href="#"><span class="glyphicon glyphicon-menu-down"></span></a>');
+				$('#read-more a').click(function(){
+					var curHeight = $('#wrap').height();
+					if(curHeight == slideHeight){
+						$('#wrap').animate({
+						  height: defHeight
+						}, "normal");
+						$('#read-more a').html('<a href="#"><span class="glyphicon glyphicon-menu-up"></span></a>');
+
+					}else{
+						$('#wrap').animate({
+						 height: slideHeight
+						}, "normal");
+						$('#read-more a').html('<a href="#"><span class="glyphicon glyphicon-menu-down"></span></a>');
+					}
+					return false;
+				});		
+			}
+		}
+	}
+});
+</script>
+	</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我的优租之家</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="text-center">
+					<h4>我的优租之家</h4>
+				</div>
+			</div>
+		</header>
+		<section class="user-detail">
+			<div class="user-info">
+				<div class="clearfix hidden-xs" style="height:20px;"></div>
+				<div class="row">
+					<div class="col-xs-10">
+						<dl>
+							<dt class="avatar">
+							<img v-bind:src="user.avatar == '' ? 'images/avatar.png' : user.avatar" class="img-circle img-responsive" />
+							</dt>
+							<dd>
+							<ul>
+								<li>{{ user.username=='' ? '匿名':user.username }} 
+								<span v-if="user.sex == 1"><img src="./images/male_icon.png" width="20"></span>
+								<span v-if="user.sex == 2"><img src="./images/female_icon.png" width="20"></span></li>								
+								<li><span class="glyphicon glyphicon-phone"></span> {{ user.mobile }}</li>
+								<li><span class="glyphicon glyphicon-heart"></span> {{ user.tags.substring(0,9) }}</li>
+							</ul>
+							</dd>
+						</dl>
+					</div>
+					<div class="col-xs-2">
+						<div class="clearfix" style="height:10px;"></div>
+						<a href="my_info.html"><span class="glyphicon glyphicon-edit"></span></a>
+					</div>
+				</div>
+				<div class="clearfix hidden-xs" style="height:20px;"></div>
+			</div>
+			<div class="container">
+				<div class="user-operate">
+					<div class="row">
+						<div class="col-xs-4">
+							<dl>
+								<dt><a href="my_rent.html"><img src="./images/my_rent.png" class="img-responsive" /></a></dt>
+								<dd><a href="my_rent.html" class="active">我的租房</a></dd>
+							</dl>
+						</div>
+						<div class="col-xs-4">
+							<dl>
+								<dt>
+								<a href="my_pay.html"><img src="./images/my_pay.png" class="img-responsive" /></a>
+								<span class="badge notify">{{count.count2}}</span>
+								</dt>
+								<dd><a href="my_pay.html" class="active">我的缴费</a></dd>
+							</dl>
+						</div>
+						<div class="col-xs-4">
+							<dl>
+								<dt><a href="my_departure.html"><img src="./images/my_departure.png" class="img-responsive" /></a></dt>
+								<dd><a href="my_departure.html" class="active">退房管理</a></dd>
+							</dl>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section class="user-list">
+			<div class="container">
+				<dl>
+					<dt><a href="my_account.html"><img src="./images/my_account.png" class="img-responsive"></a></dt><a href="my_account.html"><dd><span class="pull-left">我的账号</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="my_activity.html"><img src="./images/my_activity.png" class="img-responsive"></a></dt><a href="my_activity.html"><dd><span class="pull-left">我的活动</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="my_coupons.html"><img src="./images/my_ticket.png" class="img-responsive"></a></dt><a href="my_coupons.html"><dd><span class="pull-left">我的优惠券</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="my_record.html"><img src="./images/my_record.png" class="img-responsive"></a></dt><a href="my_record.html"><dd><span class="pull-left">看房记录</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="#" id="post_url1"><img src="./images/my_pos.png" class="img-responsive"></a></dt><a href="#" id="post_url2"><dd><span class="pull-left">POS刷卡下载</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+				<dl>
+					<dt><a href="setting.html"><img src="./images/my_setting.png" class="img-responsive"></a></dt><a href="setting.html"><dd><span class="pull-left">设置</span><span class="glyphicon glyphicon-menu-right pull-right"></span></dd></a>
+				</dl>
+			</div>
+		</section>
+		<div class="clearfix" style="height:100px;"></div>
+		<footer id="footer">
+			<div class="footer-fixed-bottom">
+				<div class="row">
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="../index.html"><img src="../images/footbar_icon_home.png" class="img-responsive" /></a></dt>
+							<dd><a href="../index.html">首页</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="../house_list.html"><img src="../images/footbar_icon_rent.png" class="img-responsive" /></a></dt>
+							<dd><a href="../house_list.html">我要租房</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt>
+							<a href="my_message.html"><img src="../images/footbar_icon_message.png" class="img-responsive" /></a>
+							<span v-if="count.msgCount > 0" class="badge footer-fixed-bottom-notify">{{ count.msgCount }}</span>
+							</dt>
+							<dd><a href="my_message.html">消息</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="main.html"><img src="../images/footbar_icon_user_a.png" class="img-responsive" /></a></dt>
+							<dd><a href="main.html" class="active">个人中心</a></dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</footer>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		user: {},
+		count: []
+	},
+	created: function () {
+	    this.getInfo();
+        this.getPost_url();
+        this.getCount();
+	},
+  	methods: {
+	    getInfo: function () {
+			var postData = {};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'data': postData,
+				'url': appurl + 'account/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.user = data.body
+					}
+				}
+			});
+	    },
+        getPost_url: function () {
+            var postData = {
+                'cityId': getGlobalVal("cityId")
+            };
+            var _this = this;
+            $.ajax({
+                'type': 'get',
+                'dataType': 'json',
+                'data': postData,
+                'url': appurl + 'global/getLinks',
+                'success': function(data) {
+                    if(errorMessage(data)){
+                    //    _this.user = data.body;
+	                    document.getElementById("post_url1").href = data.body.pskxz;
+	                    document.getElementById("post_url2").href = data.body.pskxz;
+                    }
+                }
+
+            });
+        },
+        getCount: function(){
+            var postData = {};
+            var _this = this;
+            $.ajax({
+                'type': 'get',
+                'dataType': 'json',
+                'data': postData,
+                'url': appurl + 'member/count',
+                'success': function(data) {
+                    if(errorMessage(data)){
+                    	_this.count = data.body;
+                    }
+                }
+
+            });        	
+        }
+  	}
+})
+</script>
+	</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我要租房</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+		<script src="./js/dropdown_menu.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>我要租房</h4>
+				</div>
+			</div>
+		</header>
+		<nav class="house-drop-down">
+			<div class="container">
+				<div id="select_area" class="title">
+					<span class="pull-left">选择区域</span>
+					<span class="glyphicon glyphicon-menu-up pull-right"></span>
+				</div>
+				<div class="clearfix"></div>
+				<ul class="parent-menu" id="parent-menu" style="display:none;">
+					<li class="item active" onclick="vm.changeAreaList('none', this);vm.getList(1, 'new')">全部</li>
+					<li class="item" v-for="area in areas" onclick="vm.changeAreaList({{$index}}, this)">{{ area.name }}</li>
+				</ul>
+				<ul class="sub-menu" id="sub-menu" style="display:none;">
+					<li v-for="item in area_list"><a href="javascript:void(0)" onclick="vm.getList({{ item.id }}, 'new')">{{ item.name }}</a></li>
+				</ul>
+			</div>
+		</nav>
+		<div class="clearfix" style="height:40px;"></div>
+		<section id="house-list" class="house-list">
+			<div class="container">
+				<div v-if="houses.length == 0" style="text-align:center; line-heigth:30px;color:#F00;">无数据</div>
+				<template v-for="house in houses">
+				<a href="house_detail.html?id={{ house.id }}">
+				<dl>
+					<dt><img v-bind:src="house.logo" class="img-responsive" /></dt><dd>
+						<table>
+						 <tr>
+							<td colspan="3"><h4 class="pull-left">{{ house.name }}</h4><span class="color-01 pull-right">{{ house.pos }}</span></td>
+						 </tr>
+						 <tr>
+							<td colspan="3"><span class="date color-03"><span class="glyphicon glyphicon-map-marker"></span>{{ house.address }}</span></td>
+						 </tr>
+						 <tr>
+							<td class="price"><span class="bigger">{{ house.price }}</span>元/月</td>
+							<td class="text-right">
+							<span v-if="house.isShort==1" class="badge btn-round-15 short-rent">短租</span>
+							<span v-if="house.isLong==1" class="badge btn-round-15 long-rent m-l-5">长租</span></td>
+						 </tr>
+					</table>
+					</dd>
+				</dl>
+				</a>
+				</template>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+			</div>
+		</section>
+		<div class="clearfix" style="height:100px;"></div>
+		<footer id="footer">
+			<div class="footer-fixed-bottom">
+				<div class="row">
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="index.html"><img src="./images/footbar_icon_home.png" class="img-responsive" /></a></dt>
+							<dd><a href="index.html">首页</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="house_list.html"><img src="./images/footbar_icon_rent_a.png" class="img-responsive" /></a></dt>
+							<dd><a href="house_list.html" class="active">我要租房</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt>
+							<a href="user/my_message.html"><img src="./images/footbar_icon_message.png" class="img-responsive" /></a>
+							<span v-if="user.msgCount > 0" class="badge footer-fixed-bottom-notify">{{ user.msgCount }}</span>
+							</dt>
+							<dd><a href="user/my_message.html">消息</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="user/main.html"><img src="./images/footbar_icon_user.png" class="img-responsive" /></a></dt>
+							<dd><a href="user/main.html">个人中心</a></dd>
+						</dl>
+					</div>
+
+				</div>
+			</div>
+		</footer>
+		<div id="overlay"></div>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		houses: [],
+		areas: [],
+		area_list: [],
+		page: 0,
+		limit: 0,
+		rId: 1,
+		cityId: 0,
+		user: [],
+		next_page: 0
+	},
+	created: function(){
+		this.page = getGlobalVal('page');
+		this.limit = getGlobalVal('limit');
+		this.rId = getGlobalVal('cityId');
+		this.cityId = getGlobalVal('cityId');
+		this.user = JSON.parse(getGlobalVal('user_info'))
+		this.getList();
+		this.getRegion();
+	},
+	methods: {
+		getList: function(rId,page){
+			if(page == "new"){
+				this.page = 1;
+				this.houses = [];
+			}else{
+		    	if(page){
+		    		this.page = page;
+		    	}				
+			}
+			if(rId){
+				this.rId = rId;
+			}
+			var postData = {
+				'page':this.page,
+				'limit':this.limit,
+				'rId':this.rId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'GET',
+				'data': postData,
+				'url': appurl + 'house/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.houses.length == 0){
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								for(var i=0; i<data.body.length; i++){
+									_this.houses.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;
+								}else{
+									_this.next_page = 1;
+								}
+							}
+						}
+					}
+				}
+			});
+		},
+		next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(this.rId, page)
+	    },
+
+		getRegion: function(){
+			var postData = {
+				'cityId': this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'GET',
+				'data': postData,
+				'url': appurl + 'house/getRegion',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.areas = data.body
+						_this.area_list = _this.areas[0].list
+					}
+				}
+			});
+		},
+
+		changeAreaList: function(index, handle){
+			if(index == "none"){
+				$("#sub-menu").hide();
+			}else{
+				$("#sub-menu").show();
+				this.area_list = [];
+				this.area_list = this.areas[index].list
+				console.log(this.areas[index].list)
+			}
+			$("#parent-menu li").each(function(i, e){
+				$(e).removeClass("active");
+			});
+			$(handle).addClass("active");
+		}
+	}
+});
+</script>
+	</body>
+</html>

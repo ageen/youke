@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>帖子列表</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="friend_circle.html" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content"><h4>帖子列表</h4>
+				<div class="header-bar-left"><a href="user/my_pub_note.html?fid={{ fid }}">发布帖子</a></div></div>
+			</div>
+		</header>
+		<section class="note-list-style">
+			<div class="row" id="page_list">
+				<div class="col-xs-12" v-for="list in lists">
+					<dl>
+						<dt>
+							<table width="100%">
+								<tr>
+									<td class="avatar">
+										<img v-bind:src="list.avatar" class="img-circle" />
+									</td>
+									<td class="info">
+										<div class="username">{{ list.username == '' ? '匿名' : list.username }}</div>
+										<span class="date">{{ list.addtime }}</span>
+									</td>
+									<td class="favor">
+										<ul>
+											<a href="javascript:void(0)" onclick="vm.like({{ list.tid }})"><li><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;<span style="color:#3b3b3b" id="like_count_{{ list.tid }}">{{ list.likeCount }}</span></li></a>
+											<a href="note_reply.html?fid={{ fid }}&tid={{ list.tid }}"><li style="color:#3b3b3b"><span class="glyphicon glyphicon-comment"></span>&nbsp;{{ list.replyCount }}</li></a>
+										</ul>
+									</td>
+								</tr>
+							</table>
+						</dt>
+						<a href="note_detail.html?fid={{ fid }}&tid={{ list.tid }}">
+						<dd>
+							<h4>【{{ list.subject.substring(0,12) }}】</h4>
+							<p style="word-break:break-all">{{ list.message }}</p>
+						</dd>
+						</a>
+					</dl>
+				</div>
+				<div style="clear:both"></div>
+				<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		lists: [],
+		page: getGlobalVal('page'),
+		limit: getGlobalVal('limit'),
+		fid: '',
+		is_login: false,
+		next_page: 0
+	},
+	created: function () {
+		this.fid = getUrlParam('fid');
+		if(this.fid == ''){
+			return false;
+		}
+		this.getList();
+		if(getGlobalVal("user_info")){
+			this.is_login = true;	
+		}
+	},
+  	methods: {
+	    getList: function (page) {
+	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	}
+			var postData = {
+				'page':this.page,
+				'limit':this.limit,
+				'fid':this.fid
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.lists.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>');
+							_this.next_page = false;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								$.each(data.body, function(k, v){
+									if(v.avatar == ''){
+										data.body[k].avatar = './images/avatar.png';
+									}
+									data.body[k].message = subString(data.body[k].message, 36, "...")
+								})
+								for(var i=0; i<data.body.length; i++){
+									_this.lists.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;	
+								}else{
+									_this.next_page = 1;
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+		next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    },
+	    like: function(tid, order_id) {
+			var postData = {
+				'tid': tid
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'post',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/like',
+				'success': function(data) {
+					if(errorMessage(data)){
+						var like_count = parseInt($("#like_count_"+tid).text());
+						$("#like_count_"+tid).text(like_count + 1);
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

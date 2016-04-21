@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection"content="telephone=no" />
+	<title>优惠</title>
+	<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+	<link href="./css/global.css" rel="stylesheet">
+	<link href="./css/reset.css" rel="stylesheet">
+	<link href="./css/main.css" rel="stylesheet">
+	<script src="./js/jquery.min.js"></script>
+	<script src="./js/bootstrap.min.js"></script>
+	<script src="./js/vue.js"></script>
+	<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>优惠券</h4>
+				</div>
+			</div>
+		</header>
+
+		<section class="bonus-list">
+			<div class="container">
+				<div class="row" id="page_list">
+					<div class="cols-xs-12" v-for="coupon in coupons">
+						<dl>
+							<dt v-bind:style="'background:url('+coupon.image+') center center;'"></dt><dd class="introduce">
+								<span style="font-weight:bold">{{ coupon.name }}</span>
+								<p>{{ coupon.intro }}</p>
+								<div class="date">{{ coupon.shopName }}</div>
+								<div class="date">{{ coupon.startDate }}至{{ coupon.endDate }}</div>
+							</dd><dd class="pickup" v-if="coupon.isReceive == 0">
+								<div class="pickup-text">
+									<a href="javascript:void(0);" v-on:click="getReceive($index, coupon.cpId)"><h3>点击</h3><h3>领取</h3></a>
+									<p>{{ coupon.code }}</p>
+								</div>
+							</dd><dd class="pickup" v-if="coupon.isReceive == 1">
+								<div class="disable">
+									<img src="./images/bonus_tip_disable.jpg" class="img-responsive" />
+									<p>{{ coupon.code }}</p>
+								</div>
+							</dd>
+						</dl>
+					</div>
+					<div style="clear:both"></div>
+					<div v-if="next_page == 1"><a class="btn btn-default btn-lg btn-block" v-on:click="next()">加载下一页</a></div><div v-if="next_page == 0"><p class="text-danger text-center">无更多数据</p></div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		coupons: [],
+		limit: 0,
+		page: 0,
+		cityId: 0,
+		next_page: 0
+	},
+	created: function () {
+		this.limit = getGlobalVal('limit');
+		this.page = getGlobalVal('page');
+		this.cityId = getGlobalVal("cityId");
+		this.getList();
+	},
+  	methods: {
+	    getList: function (page) {
+	    	if(!page){
+	    		page = this.page;
+	    	}else{
+	    		this.page = page;
+	    	}
+			var postData = {
+				'page':page,
+				'limit':this.limit,
+				'cityId':this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'coupons/getList',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(data.body.length == 0 && _this.coupons.length == 0){
+							$("#page_list").html('<div style="font-size:16px;color:#f00;text-align:center;">无数据</div>')
+							_this.next_page = 3;
+							return false;
+						}else{
+							if(data.body.length == 0){
+								_this.next_page = 0;
+							}else{
+								$.each(data.body, function(key, value){
+									value.startDate = timestampToDate(value.startDate);
+									value.endDate = timestampToDate(value.endDate);
+								});
+								for(var i=0; i<data.body.length; i++){
+									_this.coupons.push(data.body[i]);
+								}
+								if(data.body.length < _this.limit){
+									_this.next_page = 0;	
+								}else{
+									_this.next_page = 1;	
+								}
+							}
+						}
+					}
+				}
+			});
+	    },
+
+	    next: function(){
+	    	var page = parseInt(this.page) + 1;
+	    	this.page = page;
+	    	this.getList(page)
+	    },
+
+	    getReceive: function(index, cpId) {
+	    	if(!getGlobalVal("user_info")){
+				//前一个url
+				setSessionStorage("prev_url", window.location.href);
+	    		redirectToUrl("login.html");
+	    		return false;
+	    	}
+			var postData = {
+				'cpId':cpId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'coupons/receive',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.coupons[index].isReceive = 1;
+						_this.coupons[index].code = data.body.code;
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

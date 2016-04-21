@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection" content="telephone=no" />
+		<title>优租之家</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/carousel-swipe.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header">
+				<div class="header-icon">
+					<span class="header-icon-location pull-left">
+						<a class="btn transparent-background-black header-location">
+							<div class="location_icon"><img src="./images/location_icon.png" /></div>
+							<div class="hide-select-arrow">
+								<select id="address" onchange="vm.changeCity()" v-cloak>
+									<option v-for="city in citys" value="{{ city.rId }}">
+										{{ city.rName }}
+									</option>
+								</select>
+						    </div>
+						</a>
+					</span>
+					<span class="header-icon-search pull-right">
+						<a class="btn btn-round-30 transparent-background-black" href="search.html">
+							<img src="./images/search_ico.png" />
+						</a>
+					</span>
+				</div>
+			</div>
+			<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+				<!-- Carousel indicators -->
+				<ol class="carousel-indicators" id="banner-generic">
+					<template  v-if="sliders.length > 1">
+					<li v-for="slider in sliders" data-target="#carousel-example-generic" data-slide-to="{{ $index }}" class="{{ $index==0?'active':'' }}"></li>
+					</template>
+				</ol>
+
+				<div class="carousel-inner" role="listbox" id="banner">
+					<div v-for="slider in sliders" class="item {{ $index==0?'active':'' }}">
+						<a href="{{ slider.link }}"><img v-bind:src="slider.image" alt="{{ slider.name }}"></a>
+					</div>
+				</div>
+
+				<!-- Controls -->
+				<a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev"><span class="sr-only">Previous</span>
+				</a>
+				<a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next"><span class="sr-only">Next</span>
+				</a>
+			</div>
+			<!-- navmenu ico start -->
+			<div class="navmenu bj-white m-top">
+				<div class="row navmenu-icon">
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="serve_live.html"><img src="./images/nav_icon_8.png" class="img-responsive"></a></dt>
+							<dd><a href="serve_live.html">生活服务</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="book_ktv.html"><img src="./images/icon_xiuxianyule.png" class="img-responsive"></a></dt>
+							<dd><a href="serve_finance.html">休闲娱乐</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="serve_finance.html"><img src="./images/nav_icon_7.png" class="img-responsive"></a></dt>
+							<dd><a href="serve_finance.html">金融服务</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="book_homemaking.html"><img src="./images/nav_icon_9.png" class="img-responsive"></a></dt>
+							<dd><a href="book_homemaking.html">家政服务</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="activity.html"><img src="./images/nav_icon_3.png" class="img-responsive"></a></dt>
+							<dd><a href="activity.html">活动</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="bonus.html"><img src="./images/nav_icon_6.png" class="img-responsive"></a></dt>
+							<dd><a href="bonus.html">优惠</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="friend_circle.html"><img src="./images/nav_icon_2.png" class="img-responsive"></a></dt>
+							<dd><a href="friend_circle.html">朋友圈</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="news.html"><img src="./images/nav_icon_5.png" class="img-responsive"></a></dt>
+							<dd><a href="news.html">今日头条</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="fund_raise_create.html"><img src="./images/nav_icon_1.png" class="img-responsive"></a></dt>
+							<dd><a href="fund_raise_create.html">创客空间</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="demand_supply.html"><img src="./images/nav_icon_4.png" class="img-responsive"></a></dt>
+							<dd><a href="demand_supply.html">反客为主</a></dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+			<!-- nav menu ico end -->
+		</header>
+		<section id="list-house-recommend" class="bj-white m-top">
+			<div class="container">
+				<h3>精选房源推荐</h3>
+				<div id="tuijian" v-cloak>
+					<dl v-for="house in houses">
+					<dt>
+					<a v-if="house.isLong == 1" href="rent_long.html?hId={{ house.id }}">
+					<img v-bind:src="house.logo" class="img-responsive" />
+					</a>
+					<a v-if="house.isShort == 1" href="rent_short.html?hId={{ house.id }}">
+					<img v-bind:src="house.logo" class="img-responsive" />
+					</a>
+					<span class="badge transparent-background-orange"><h4>{{ house.price }}元/月</h4></span>
+					</dt>
+					<dd>
+					<div class="pull-left">
+						<a href="{{ house.isLong == 1 ? 'rent_long.html?hId='+house.id : 'rent_short.html?hId='+house.id }}"><h4 class="title">{{ house.name }}</h4></a>
+						<p>{{ house.address }}</p>
+					</div>
+					<div class="pull-right">
+						<span v-if="house.isLong == 1" class="badge btn-round-15 bg-color-orange">长租</span>
+						<span v-if="house.isShort == 1" class="badge btn-round-15 short-rent">短租</span>
+					</div>
+					</dd>
+					</dl>
+				</div>
+			</div>
+		</section>
+		<div id="download-popup">
+			<div id="myModal" class="modal fade">
+				<div class="popup-fixed-bottom">
+					<div class="modal-dialog">
+						<img src="./images/download_background.png" class="img-responsive">
+						<a type="button" class="btn download-popup-close" data-dismiss="modal"><span class="badge">&times;</span></a>
+						<div class="download-popup-fixed-downloada-button">
+							<div class="row">
+								<div class="col-xs-2"></div>
+								<div class="col-xs-2"></div>
+								<div class="col-xs-3">
+									<img src="./images/download_iphone.png" class="img-responsive">
+								</div>
+								<div class="col-xs-3">
+									<img src="./images/download_android.png" class="img-responsive">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<footer id="footer">
+			<div class="footer-fixed-bottom">
+				<div class="row">
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="index.html"><img src="./images/footbar_icon_home_a.png" class="img-responsive" /></a></dt>
+							<dd><a href="index.html" class="active">首页</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="house_list.html"><img src="./images/footbar_icon_rent.png" class="img-responsive" /></a></dt>
+							<dd><a href="house_list.html">我要租房</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3" v-cloak>
+						<dl>
+							<dt>
+							<a href="user/my_message.html"><img src="./images/footbar_icon_message.png" class="img-responsive" /></a>
+							<span v-if="user.msgCount > 0" class="badge footer-fixed-bottom-notify">{{ user.msgCount }}</span>
+							</dt>
+							<dd><a href="user/my_message.html">消息</a></dd>
+						</dl>
+					</div>
+					<div class="col-xs-3">
+						<dl>
+							<dt><a href="user/main.html"><img src="./images/footbar_icon_user.png" class="img-responsive" /></a></dt>
+							<dd><a href="user/main.html">个人中心</a></dd>
+						</dl>
+					</div>
+
+				</div>
+			</div>
+		</footer>
+
+<script type="text/javascript">
+$("#carousel-example-generic").carousel()
+var vm = new Vue({
+	el: "#app",
+	data: {
+		citys: [],
+		sliders: [],
+		pos: 1,
+		houses: [],
+		cityId: '',
+		user: []
+	},
+	created: function () {
+		this.getCity();
+		this.cityId = getGlobalVal("cityId");
+	    this.getAds(this.pos);
+	    this.getRec();
+	    this.user = JSON.parse(getGlobalVal('user_info'));
+	},
+  	methods: {
+	    getCity: function () {
+			var postData = {};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'index/getCity',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.citys = data.body.list;
+					}
+				}
+			});
+	    },
+	    getAds: function (pos) {
+			var postData = {
+				'cityId': this.cityId,
+				'pos':pos
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'global/getAds',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.sliders = data.body;
+					}
+				}
+			});
+	    },
+	    getRec: function () {
+			var postData = {
+				'cityId': this.cityId
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'index/getRec',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.houses = data.body;
+					}
+				},
+				'complete': function(){
+					$("#address option[value="+_this.cityId+"]").attr("selected", "selected");
+				}
+			});
+	    },
+	    changeCity: function () {
+	    	setCookie("cityId", $("#address option:selected").val());
+			this.cityId = getGlobalVal("cityId");
+		    this.getAds(this.pos);
+		    this.getRec();
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

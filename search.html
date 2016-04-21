@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>搜索</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/jquery.validate.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<form id="search_form" onsubmit="return false;">
+						<input type="text" class="header-bar-search-input" name="name" placeholder="请输入楼宇名字" id="search_key">
+					</form>
+				</div>
+			</div>
+		</header>
+		<section id="history-list">
+				<h4 v-if="lists.length>0">历史记录</h4>
+				<form>
+					<ul>
+						<li v-for="v in lists"><a href="search_result.html?name={{ v }}"><span class="glyphicon glyphicon-time"></span> {{ v }}</a></li>
+					</ul>
+					<div v-if="lists.length>0" class="history-list-clear"><a href="javascript:void(0)" onclick="vm.clearHistory()">清除历史记录</a></div>
+				</form>
+		</section>
+
+<script type="text/javascript">
+$('#search_key').keypress(function (e) {
+	if (e.which == 13) {
+		vm.setSearchHistory();
+		return false;
+	}
+});
+
+var vm = new Vue({
+	el: "#app",
+	data: {
+		lists:[]
+	},
+	created: function () {
+		var search_str = getGlobalVal("search_history");
+		if(search_str != "false"){
+			this.lists = JSON.parse(search_str);			
+		}
+	},
+  	methods: {
+  		setSearchHistory: function(){
+  			var name = $("input[name=name]").val();
+  			if(name == ''){
+  				$("input[name=name]").focus();
+  				return false;
+  			}
+  			var search_str = getGlobalVal("search_history");
+  			console.log(search_str)
+  			if(search_str && search_str != 'false'){
+	  			var search_arr = JSON.parse(search_str);
+	  			for(var i=0; i<search_arr.length; i++){
+	  				if(search_arr[i] == name){
+	  					redirectToUrl("search_result.html?name="+encodeURI(name));
+	  					return false;
+	  				}
+	  			}
+	  			search_arr.push(name);
+	  			setLocalStorage("search_history", JSON.stringify(search_arr));
+	  			this.lists = search_arr;
+	  			redirectToUrl("search_result.html?name="+encodeURI(name));
+	  			return false;
+  			}else{
+	  			var search_arr = [];
+	  			search_arr.push(name);
+	  			setLocalStorage("search_history", JSON.stringify(search_arr));
+	  			this.lists = search_arr;
+	  			redirectToUrl("search_result.html?name="+encodeURI(name));
+	  			return false;
+  			}
+  		},
+
+  		clearHistory: function(){
+  			setLocalStorage("search_history", false);
+  			this.lists = [];
+  		}
+  	}
+})
+</script>
+	</body>
+</html>

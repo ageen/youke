@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>商家新闻</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/globel.js"></script>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>商家新闻</h4>
+				</div>
+			</div>
+		</header>
+
+		<section class="news-detail">
+			<div class="container">
+				<h3>{{ detail.title }}</h3>
+				<div class="date"><span class="glyphicon glyphicon-time"></span> {{ detail.pubtime }}发布</div>
+				<div>{{{ detail.content }}}</div>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		id: '',
+		detail: []
+	},
+	created: function () {
+		this.id = getUrlParam('id');
+		this.getDetail();
+	},
+  	methods: {
+	    getDetail: function () {
+			var postData = {
+				'id':this.id
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'news/getContent',
+				'success': function(data) {
+					_this.detail = data.body;
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

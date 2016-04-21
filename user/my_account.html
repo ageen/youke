@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我的账号</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>我的账号</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix" style="height:10px;"></div>
+		<section class="user-list">
+			<div class="container">
+				<ul>
+					<li><span class="pull-left">账户余额</span><span class="price pull-right">金额: <span class="bigger">{{ balance }}</span>元</span></li>
+					<li><a href="my_deposit.html"><span class="pull-left">充值</span><span class="pull-right glyphicon glyphicon-menu-right"></span></a></li>
+					<li><a href="my_withdraw.html"><span class="pull-left">提现</span><span class="pull-right glyphicon glyphicon-menu-right"></span></a></li>
+				</ul>
+			</div>
+		</section>
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		balance: 0
+	},
+	created: function () {
+		this.getInfo();
+	},
+  	methods: {
+	    getInfo: function () {
+			var postData = {};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'data': postData,
+				'url': appurl + 'account/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.balance = data.body.balance
+					}
+				}
+			});
+	    },
+        getPost_url: function () {
+            var postData = {
+                'cityId': getGlobalVal("cityId")
+            };
+            var _this = this;
+            $.ajax({
+                'type': 'get',
+                'dataType': 'json',
+                'data': postData,
+                'url': appurl + 'global/getLinks',
+                'success': function(data) {
+                    if(errorMessage(data)){
+                    //    _this.user = data.body;
+                    }
+                    document.getElementById("post_url1").href = data.body.pskxz;
+                    document.getElementById("post_url2").href = data.body.pskxz;
+                }
+
+            });
+        }
+  	}
+})
+</script>
+	</body>
+</html>

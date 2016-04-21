@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection"content="telephone=no" />
+	<title>发布信息</title>
+	<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+	<link href="../js/lc_witch/lc_switch.css" rel="stylesheet">
+	<link href="../js/mtime/mtime.css" rel="stylesheet">
+	<link href="../css/bootstrap-checkbox.css" rel="stylesheet">
+	<link href="../css/global.css" rel="stylesheet">
+	<link href="../css/reset.css" rel="stylesheet">
+	<link href="../css/main.css" rel="stylesheet">
+	<link rel="stylesheet" href="../js/diyUpload/css/webuploader.css">
+	<link rel="stylesheet" href="../js/diyUpload/css/diyUpload.css">
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/jquery.validate.js"></script>
+	<script src="../js/bootstrap.min.js"></script>
+	<script src="../js/vue.js"></script>
+	<script src="../js/globel.js"></script>
+	<script src="../js/check_login.js"></script>
+	<script type="text/javascript" src="../js/diyUpload/js/webuploader.html5only.min.js"></script>
+	<script type="text/javascript" src="../js/diyUpload/js/diyUpload.js"></script>
+</head>
+<body id="app">
+<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+<header>
+	<div class="header-bar">
+		<div class="header-bar-previous pull-left">
+			<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+		</div>
+		<div class="header-bar-content">
+			<h4>发布信息</h4>
+		</div>
+	</div>
+</header>
+<div class="clearfix">&nbsp;</div>
+<section>
+	<form class="form-horizontal" id="handle_form" style="width:95%;margin:0 auto;padding:10px;overflow:hidden;">
+		<div class="form-group">
+			<label for="inputEmail" class="control-label col-xs-3"><span class="font-color-red">*</span> 标题</label>
+			<div class="col-xs-8">
+				<input type="text" class="form-control" name="title" placeholder="标题" data-rule-required="true">
+				<div class="tip"><span class="glyphicon glyphicon-info-sign"></span>标题字数在3-15个</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="inputEmail" class="control-label col-xs-3"><span class="font-color-red">*</span> 内容</label>
+			<div class="col-xs-8">
+				<textarea name="content" class="form-control" data-rule-required="true"></textarea>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="control-label col-xs-3"><span class="font-color-red">*</span> 图片</label>
+			<div class="col-xs-8" id="box">
+				<div id="preview"></div>
+				<div class="tip"><span class="glyphicon glyphicon-info-sign"></span>至少上传一张图片</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="control-label col-xs-3">信息类型</label>
+			<div class="col-xs-8 gender">
+				<div class="radio radio-primary pull-left">
+					<input type="radio" name="type" id="radio1" value="1" checked="checked">
+					<label for="radio1">提供需求</label>
+				</div>
+				<div class="radio radio-primary pull-right">
+					<input type="radio" name="type" id="radio2" value="2">
+					<label for="radio2">寻找帮助</label>
+				</div>
+			</div>
+		</div>
+		<input type="hidden" name="cityId">
+		<button type="button" class="btn btn-orange btn-lg btn-block" onclick="vm.saveNote()">发布信息</button>
+	</form>
+	<div class="clearfix"></div>
+</section>
+<div id="datePlugin"></div>
+
+<!--jquery plugin-->
+<script type="text/javascript">
+	var images = new Array();
+	var vm = new Vue({
+		el: "#app",
+		data: {},
+		created: function () {
+			$("input[name=cityId]").val(getGlobalVal("cityId"));
+			$("#handle_form").validate({
+				errorPlacement: function(error, element) {}
+			});
+		},
+		methods: {
+			saveNote: function () {
+				if($("#handle_form").valid() === false){
+		    		return false;
+		    	}
+				var postData = $("#handle_form").serializeObject();
+				postData.images = images.join('|');
+				var _this = this;
+				alert(postData.images);
+				$.ajax({
+					'type': 'POST',
+					'dataType': 'json',
+					'data': postData,
+					'url': appurl + 'info/save',
+					'success': function(data) {
+						if(errorMessage(data)){
+							redirectToUrl("../demand_supply.html");
+						}
+					}
+				});
+			},
+
+		}
+	});
+//TODO 图片上传
+	$('#preview').diyUpload({
+		url:appurl + 'global/upload',
+		
+		success:function( data ) {
+			images.push(data.body[0].image);
+		},
+		error:function( err ) {
+			console.info( err );
+		}
+	});
+</script>
+</body>
+</html>

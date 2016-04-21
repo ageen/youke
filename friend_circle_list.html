@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>帖子列表</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="js/globel.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>东外滩花园公寓</h4>
+				</div>
+			</div>
+		</header>
+		<section class="comment-list" v-cloak>
+			<div class="container">
+				<h4>回复列表</h4>
+				<dl>
+					<dt class="avatar"><img src="./images/avatar.png" class="img-circle img-responsive" /></dt>
+					<dd>
+						<div class="username">纤纤</div><span class="date">昨天 15:60</span>
+						<p>
+							这个好！我们都是美食的俘虏！
+						</p>
+					</dd>
+				</dl>
+				<dl>
+					<dt class="avatar"><img src="./images/avatar.png" class="img-circle img-responsive" /></dt>
+					<dd>
+						<div class="username">纤纤</div><span class="date">昨天 15:60</span>
+						<p>
+							这个好！我们都是美食的俘虏！
+						</p>
+					</dd>
+				</dl>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		lists: []
+	},
+	created: function () {
+		this.getList();
+	},
+  	methods: {
+	    getList: function () {
+			var postData = {
+				'page':1,
+				'limit':8,
+				'cityId':1
+			};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'forum/getCircleList',
+				'success': function(data) {
+					$.each(data.body, function(k,v){
+						if(v.icon == ''){
+							data.body[k].icon = './images/example2.png';
+						}
+					});
+					if(errorMessage(data)){
+						_this.lists = data.body;
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

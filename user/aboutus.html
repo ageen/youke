@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>关于我们</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>关于我们</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix" style="height:15px;"></div>
+		<section class="user-list">
+			<div class="container" id="aboutus">
+			<p style="text-indent:2em;line-height:25px;font-size:14px;"></p>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+	var postData = {}
+	$.ajax({
+		'type': 'GET',
+		'dataType': 'json',
+		'data': postData,
+		'url': appurl + 'member/about',
+		'success': function(data) {
+			if(errorMessage(data)){
+				$("#aboutus>p").html(data.body.data)
+			}
+		}
+	});
+});
+</script>
+	</body>
+</html>

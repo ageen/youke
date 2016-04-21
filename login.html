@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>注册登录</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="./css/global.css" rel="stylesheet">
+		<link href="./css/reset.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/vue.js"></script>
+		<script src="./js/jquery.validate.js"></script>
+		<script src="./js/globel.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<section class="customer">
+			<div style="background:#fff;">
+				<ul class="tab-center">
+					<li class="active"><a data-toggle="tab" href="#sectionA"><h4>登录</h4></a></li>
+					<li><a data-toggle="tab" href="#sectionB"><h4>注册</h4></a></li>
+				</ul>
+			</div>
+			
+			<div class="tab-content">
+				<div id="sectionA" class="tab-pane fade in active">
+					<div class="container">
+						<form class="login_form" id="login_form" onsubmit="return false;">
+							<input class="big_input" type="number" pattern="[0-9]*" name="mobile" placeholder="输入手机号" data-rule-required="true" />
+							<input class="big_input" type="password" name="password" placeholder="密码" data-rule-required="true" />
+							<button class="btn btn-block btn-lg bg-color-orange" onclick="vm.getLogin()">登 录</button>
+							<div class="text-right title"><a href="password_forget.html">忘记密码 ?</a></div>
+						</form>
+					</div>
+				</div>
+				<div id="sectionB" class="tab-pane fade">
+					<div class="container">
+						<form class="login_form" id="reg_form" onsubmit="return false;">
+							<input class="big_input" type="number" pattern="[0-9]*" name="mobile" placeholder="手机号" data-rule-required="true" onkeypress='return event.charCode >= 48 && event.charCode <= 57'>
+							<input class="big_input" type="password" name="password" placeholder="密码" data-rule-required="true" onKeypress="javascript:if(event.keyCode == 32)event.returnValue = false;">
+							<div class="clearfix">
+								<div class="left"><input class="verify_input" type="number" pattern="[0-9]*" name="vcode" placeholder="验证码"></div>
+								<div class="right" id="handle_button"></div>
+							</div>
+							<div class="clearfix">
+								<div class="center">
+									<div class="radio radio-primary pull-left active">
+										<input type="radio" name="sex" id="radio1" value="1" checked="checked">
+										<label for="radio1">男</label>
+									</div>
+									<div class="radio radio-primary pull-right active">
+										<input type="radio" name="sex" id="radio2" value="2">
+										<label for="radio2">女</label>
+									</div>
+								</div>
+							</div>
+							<div class="clearfix"></div>
+							<button class="btn btn-block btn-lg bg-color-orange" onclick="vm.getReg()">注 册</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		veri_code: '<a href="javascript:void(0)" onclick="vm.sendVcode(1)"><span class="badge btn-round-15 bg-color-orange-empty">获取验证码</span></a>',
+		waitTime: 60,
+		second: '',
+		interval: ''
+	},
+	created: function () {
+		if(getGlobalVal('user_info')){
+			redirectToUrl("user/main.html");
+		}
+		$("#login_form").validate({
+			errorPlacement: function(error, element) {
+				errorMessageText("请输入手机号及密码")	
+			}
+		});
+		$("#reg_form").validate({
+			errorPlacement: function(error, element) {
+				errorMessageText("请输入完整信息")	
+			}
+		});
+		$("#handle_button").html(this.veri_code);
+	},
+  	methods: {
+	    getLogin: function () {
+	    	if($("#login_form").valid() === false){
+	    		return false;
+	    	}
+			var postData = $("#login_form").serialize();
+			var _this = this;
+			$.ajax({
+				'type': 'post',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'account/login',
+				'success': function(data) {
+					if(errorMessage(data)){
+						setSessionStorage("user_info", JSON.stringify(data.body));
+						if(getGlobalVal('prev_url')&&getGlobalVal('prev_url')!="false"){
+							redirectToUrl(getGlobalVal('prev_url'));
+						}else{
+							redirectToUrl("user/main.html");
+						}
+					}else{
+						$("#login_form input[name=password]").val('');
+						$("#login_form input[name=password]").focus();
+					}
+				}
+			});
+	    },
+
+	    getReg: function() {
+	    	if($("#reg_form").valid() === false){
+	    		return false;
+	    	}
+			var postData = $("#reg_form").serializeObject();
+			var codeExpression = /^\d{6}$/;
+			var passwordExpression = /[\s\S]{6,20}/;
+			var phoneExpression = /^1[3578]\d{9}$/;
+			var valid = true;
+			$.each(postData, function(k,v){
+				if(k=="mobile"){
+					if(!phoneExpression.test(v)){
+						errorMessageText("请输入正确手机号码")
+						valid = false;
+						$("input[name=mobile]").focus();
+						return false;
+					}
+				}
+				if(k=="vcode"){
+					if(!codeExpression.test(v)){
+						errorMessageText("验证码长度6位")
+						valid = false;
+						$("input[name=vcode]").focus();
+						return false;
+					}
+				}
+				if (k=="password") {
+					if(!passwordExpression.test(v)){
+						errorMessageText("密码长度6至20位")
+						valid = false;
+						$("input[name=password]").focus();
+						return false;
+					}
+				}
+			})
+			if(valid == false){
+				return false;
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'post',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'account/register',
+				'success': function(data) {
+					if(errorMessage(data)){
+						alert(data.message);
+						redirectToUrl("login.html");
+					}
+				}
+			});
+	    },
+
+	    sendVcode: function(operate){
+	    	var mobile = $("form#reg_form input[name=mobile]").val();
+	    	var phoneExpression = /^1[3578]\d{9}$/;
+	    	if(!phoneExpression.test(mobile)){
+				errorMessageText("请输入正确手机号码")
+				$("form#reg_form input[name=mobile]").focus();
+				return false;
+			}
+			var postData = {
+				"mobile" : mobile,
+				"operate" : operate
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'GET',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'global/sendVcode',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.second = _this.waitTime;
+						_this.interval = setInterval(_this.counter, 1000);
+					}
+				}
+			});
+	    },
+
+	    counter: function(){
+	    	if(this.second == 1){
+	    		$("#handle_button").html(this.veri_code);
+	    		clearInterval(this.interval);
+	    		return false;
+	    	}else{
+	    		this.second = parseInt(this.second) - 1;
+	    		$("#handle_button").html("<span class='timeout'>"+this.second + "秒后重新发送</span>");
+	    	}
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

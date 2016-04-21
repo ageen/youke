@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>我的性别</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/jquery.validate.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app">
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>我的性别</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix" style="height:10px;"></div>
+		<section class="customer">
+			<div class="container">
+				<form class="login_form" id="handle_form" onsubmit="return false;">
+							<div class="center">
+								<div class="radio radio-primary pull-left active">
+									<input type="radio" name="sex" id="radio1" value="1">
+									<label for="radio1">男</label>
+								</div>
+								<div class="radio radio-primary pull-right active">
+									<input type="radio" name="sex" id="radio2" value="2">
+									<label for="radio2">女</label>
+								</div>
+							</div>
+					<div class="clearfix"></div>
+					<input type="hidden" name="option" value="sex">
+					<button class="btn btn-block btn-lg bg-color-orange" onclick="vm.setGender()">保 存</button>
+				</form>
+			</div>
+		</section>
+
+
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		user_info: {}
+	},
+	created: function () {
+		this.user_info = JSON.parse(getGlobalVal("user_info"))
+		if(this.user_info.sex == 1){
+			$("#radio1").attr("checked","checked")
+		}else{
+			$("#radio2").attr("checked","checked")
+		}
+	},
+  	methods: {
+	    setGender: function () {
+	    	if($("#handle_form").valid() == false){
+	    		return false;
+	    	}
+			var postData = $("#handle_form").serialize();
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'data': postData,
+				'url': appurl + 'account/update',
+				'success': function(data) {
+					_this.user_info.sex = $("input[name=sex]:checked").val();
+					setSessionStorage("user_info", JSON.stringify(_this.user_info));
+					if(errorMessage(data)){
+						redirectToUrl("my_info.html");
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>

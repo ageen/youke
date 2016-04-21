@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="format-detection"content="telephone=no" />
+		<title>充值</title>
+		<link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../js/lc_witch/lc_switch.css" rel="stylesheet">
+		<link href="../js/mtime/mtime.css" rel="stylesheet">
+		<link href="../css/bootstrap-checkbox.css" rel="stylesheet">
+		<link href="../css/global.css" rel="stylesheet">
+		<link href="../css/reset.css" rel="stylesheet">
+		<link href="../css/main.css" rel="stylesheet">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/globel.js"></script>
+		<script src="../js/check_login.js"></script>
+	</head>
+	<body id="app" v-cloak>
+		<div id="response-message"><span></span><a href="javascript:void(0);" class="close" onclick="closeResponseMessage()">&times;</a></div>
+		<header>
+			<div class="header-bar">
+				<div class="header-bar-previous pull-left">
+					<a href="javascript:history.back();" ><span class="glyphicon glyphicon-menu-left"></span></a>
+				</div>
+				<div class="header-bar-content">
+					<h4>充值</h4>
+				</div>
+			</div>
+		</header>
+		<div class="clearfix">&nbsp;</div>
+		<section>
+			<div class="form-horizontal" style="width:95%;margin:0 auto 15px auto;overflow:hidden;background:#fff;">
+				<div>
+					<label for="money" class="control-label col-xs-3">账户余额</label>
+					<div class="col-xs-9 text-right" style="line-height:34px;color:#f0771e;">金额：<span style="font-size:16px;font-weight:bold;">{{ balance }}</span>元</div>
+				</div>
+			</div>
+			<form class="form-horizontal" id="handle_form" style="width:95%;margin:0 auto;">
+				<div class="form-group">
+					<label for="money" class="control-label col-xs-3">充值金额</label>
+					<div class="col-xs-6">
+						<input type="number" pattern="[0-9]*" class="form-control" name="money">
+						<div class="tip"><span class="glyphicon glyphicon-info-sign"></span>请输入整数</div>
+					</div>
+					<div class="col-xs-3">元</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-xs-3">充值方式</label>
+					<div class="col-xs-8">
+						<div class="radio radio-primary pull-left">
+							<input type="radio" name="payId" id="radio1" value="1" checked="checked">
+							<label for="radio1">支付宝</label>
+						</div>
+						<div class="radio radio-primary pull-right">
+							<input type="radio" name="payId" id="radio2" value="2">
+							<label for="radio2">微信支付</label>
+						</div>
+					</div>
+				</div>
+				<input type="hidden" name="source" value="wap">
+				<button type="button" class="btn btn-orange btn-lg btn-block" onclick="vm.deposit()">立即充值</button>
+			</form>
+			<div class="clearfix"></div>
+		</section>
+		<div id="datePlugin"></div>
+		<div id="aliPay" style="display:none"></div>
+
+<!--jquery plugin-->
+<script type="text/javascript">
+var vm = new Vue({
+	el: "#app",
+	data: {
+		balance: 0
+	},
+	created: function () {
+		this.getInfo();
+	},
+  	methods: {
+  		getInfo: function () {
+			var postData = {};
+			var _this = this;
+			$.ajax({
+				'type': 'get',
+				'data': postData,
+				'url': appurl + 'account/getInfo',
+				'success': function(data) {
+					if(errorMessage(data)){
+						_this.balance = data.body.balance
+					}
+				}
+			});
+	    },
+  		deposit: function () {
+			var postData = $("#handle_form").serializeObject();
+			var payId = 1;
+			if(postData.payId == 2){
+				postData.tradeType =  "JSAPI";
+				payId = 2;
+			}
+			var _this = this;
+			$.ajax({
+				'type': 'POST',
+				'dataType': 'json',
+				'data': postData,
+				'url': appurl + 'member/deposit',
+				'success': function(data) {
+					if(errorMessage(data)){
+						if(payId == 1){
+							$("#aliPay").html(data.body);
+						}else if(payId == 2){
+							redirectToUrl(data.body.url);
+						}
+					}
+				}
+			});
+	    }
+  	}
+})
+</script>
+	</body>
+</html>
